@@ -32,11 +32,11 @@ interface PuterStore {
       prompt: string | ChatMessage[],
       imageURL?: string | ChatOptions,
       testMode?: boolean,
-      options?: ChatOptions
+      options?: ChatOptions,
     ) => Promise<ChatResponse | undefined>;
     feedback: (
       path: string,
-      message: string
+      message: string,
     ) => Promise<ChatResponse | undefined>;
   };
   kv: {
@@ -45,7 +45,7 @@ interface PuterStore {
     delete: (key: string) => Promise<boolean | undefined>;
     list: (
       pattern?: string,
-      returnValues?: boolean
+      returnValues?: boolean,
     ) => Promise<string[] | KVPair[] | undefined>;
     flush: () => Promise<boolean | undefined>;
   };
@@ -219,7 +219,7 @@ export const usePuterStore = create<PuterStore>((set, get) => {
     const startTime = performance.now();
     const result = await puter.fs.read(path);
     console.log(
-      `FS read ${path} took ${(performance.now() - startTime).toFixed(2)}ms`
+      `FS read ${path} took ${(performance.now() - startTime).toFixed(2)}ms`,
     );
     return result;
   };
@@ -246,7 +246,7 @@ export const usePuterStore = create<PuterStore>((set, get) => {
     prompt: string | ChatMessage[],
     imageURL?: string | ChatOptions,
     testMode?: boolean,
-    options?: ChatOptions
+    options?: ChatOptions,
   ) => {
     const puter = getPuter();
     if (!puter) {
@@ -284,7 +284,7 @@ export const usePuterStore = create<PuterStore>((set, get) => {
       {
         model: "claude-3-7-sonnet",
         temperature: 0.0,
-      }
+      },
     ) as Promise<ChatResponse | undefined>;
   };
 
@@ -369,7 +369,7 @@ export const usePuterStore = create<PuterStore>((set, get) => {
         prompt: string | ChatMessage[],
         imageURL?: string | ChatOptions,
         testMode?: boolean,
-        options?: ChatOptions
+        options?: ChatOptions,
       ) => chat(prompt, imageURL, testMode, options),
       feedback: (path: string, message: string) => feedback(path, message),
     },
