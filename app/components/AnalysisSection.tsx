@@ -42,10 +42,7 @@ const AnalysisSection = ({
           description={description}
         />
       </AccordionHeader>
-      <AccordionContent
-        itemId={id}
-        className="section-panel"
-      >
+      <AccordionContent itemId={id} className="section-panel">
         {children}
       </AccordionContent>
     </AccordionItem>

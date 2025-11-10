@@ -75,19 +75,21 @@ const Resume = () => {
             data.imagePath ? fs.read(data.imagePath) : Promise.resolve(null),
           ]);
 
-          if (resumeResult.status === 'fulfilled' && resumeResult.value) {
-            const pdfBlob = new Blob([resumeResult.value], { type: "application/pdf" });
+          if (resumeResult.status === "fulfilled" && resumeResult.value) {
+            const pdfBlob = new Blob([resumeResult.value], {
+              type: "application/pdf",
+            });
             const resumeObjectUrl = URL.createObjectURL(pdfBlob);
             setResumeUrl(resumeObjectUrl);
-          } else if (resumeResult.status === 'rejected') {
-            console.error('Failed to load resume PDF:', resumeResult.reason);
+          } else if (resumeResult.status === "rejected") {
+            console.error("Failed to load resume PDF:", resumeResult.reason);
           }
 
-          if (imageResult.status === 'fulfilled' && imageResult.value) {
+          if (imageResult.status === "fulfilled" && imageResult.value) {
             const imageObjectUrl = URL.createObjectURL(imageResult.value);
             setImageUrl(imageObjectUrl);
-          } else if (imageResult.status === 'rejected') {
-            console.error('Failed to load resume image:', imageResult.reason);
+          } else if (imageResult.status === "rejected") {
+            console.error("Failed to load resume image:", imageResult.reason);
           }
         }
 

@@ -87,24 +87,25 @@ export const Accordion: React.FC<AccordionProps> = ({
         );
       } catch (error) {
         if (error instanceof DOMException) {
-          if (error.name === 'QuotaExceededError') {
+          if (error.name === "QuotaExceededError") {
             // Clear old accordion states to make room
             try {
               const allKeys = Object.keys(localStorage);
               const accordionKeys = allKeys
-                .filter(key => key.startsWith('accordion-'))
+                .filter((key) => key.startsWith("accordion-"))
                 .sort();
-              
+
               // Remove oldest states, keep 5 most recent
-              accordionKeys.slice(0, Math.max(0, accordionKeys.length - 5))
-                .forEach(key => {
+              accordionKeys
+                .slice(0, Math.max(0, accordionKeys.length - 5))
+                .forEach((key) => {
                   try {
                     localStorage.removeItem(key);
                   } catch (e) {
                     // Ignore cleanup errors
                   }
                 });
-              
+
               // Retry save
               localStorage.setItem(
                 `accordion-${persistKey}`,
@@ -113,9 +114,9 @@ export const Accordion: React.FC<AccordionProps> = ({
             } catch (retryError) {
               console.warn("Could not persist accordion state", retryError);
             }
-          } else if (error.name === 'SecurityError') {
+          } else if (error.name === "SecurityError") {
             // Private browsing mode - silently fail
-            console.info('localStorage unavailable (private browsing?)');
+            console.info("localStorage unavailable (private browsing?)");
           }
         } else {
           console.warn("Failed to save accordion state", error);
