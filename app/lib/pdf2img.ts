@@ -19,7 +19,7 @@ async function loadPdfJs(): Promise<any> {
     if (typeof window === "undefined") {
       throw new Error("PDF rendering is only available in the browser");
     }
-    
+
     // Reuse existing worker or create new
     if (!workerInstance) {
       workerInstance = new Worker(
@@ -27,7 +27,7 @@ async function loadPdfJs(): Promise<any> {
         { type: "module" },
       );
     }
-    
+
     lib.GlobalWorkerOptions.workerPort = workerInstance;
     pdfjsLib = lib;
     isLoading = false;
@@ -75,20 +75,21 @@ export async function convertPdfToImage(
 
     return new Promise((resolve) => {
       // Try WebP first, fallback to PNG
-      const testCanvas = document.createElement('canvas');
+      const testCanvas = document.createElement("canvas");
       testCanvas.width = 1;
       testCanvas.height = 1;
-      const supportsWebP = testCanvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
-      
-      const format = supportsWebP ? 'image/webp' : 'image/png';
+      const supportsWebP =
+        testCanvas.toDataURL("image/webp").indexOf("data:image/webp") === 0;
+
+      const format = supportsWebP ? "image/webp" : "image/png";
       const quality = supportsWebP ? 0.9 : 1.0;
-      
+
       canvas.toBlob(
         (blob) => {
           if (blob) {
             // Create a File from the blob with the same name as the pdf
             const originalName = file.name.replace(/\.pdf$/i, "");
-            const ext = supportsWebP ? '.webp' : '.png';
+            const ext = supportsWebP ? ".webp" : ".png";
             const imageFile = new File([blob], `${originalName}${ext}`, {
               type: format,
             });
