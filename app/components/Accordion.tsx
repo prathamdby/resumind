@@ -51,23 +51,8 @@ export const Accordion: React.FC<AccordionProps> = ({
 }) => {
   const [allItemIds, setAllItemIds] = useState<string[]>([]);
 
-  // Initialize from localStorage or defaultOpen
+  // Initialize from defaultOpen (same on server and client)
   const getInitialState = (): string[] => {
-    if (typeof window === "undefined") return [];
-
-    // Try localStorage first if persistKey is provided
-    if (persistKey) {
-      try {
-        const stored = localStorage.getItem(`accordion-${persistKey}`);
-        if (stored) {
-          return JSON.parse(stored);
-        }
-      } catch (error) {
-        console.warn("Failed to load accordion state from localStorage", error);
-      }
-    }
-
-    // Fall back to defaultOpen
     if (Array.isArray(defaultOpen)) {
       return defaultOpen;
     }
@@ -78,6 +63,21 @@ export const Accordion: React.FC<AccordionProps> = ({
   };
 
   const [activeItems, setActiveItems] = useState<string[]>(getInitialState);
+
+  // Load from localStorage after mount (client-only)
+  useEffect(() => {
+    if (persistKey && typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem(`accordion-${persistKey}`);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setActiveItems(parsed);
+          }
+        }
+      } catch {}
+    }
+  }, [persistKey]);
 
   // Persist to localStorage when activeItems change
   useEffect(() => {
