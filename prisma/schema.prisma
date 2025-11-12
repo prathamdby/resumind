@@ -23,6 +23,7 @@ model User {
 
   accounts Account[]
   sessions Session[]
+  resumes Resume[]
 }
 
 model Account {
@@ -84,4 +85,20 @@ model RateLimit {
   updatedAt   DateTime @updatedAt
 
   @@index([resetAt])
+}
+
+model Resume {
+  id             String   @id @default(cuid())
+  userId         String
+  companyName    String?
+  jobTitle       String
+  jobDescription String   @db.Text
+  feedback       Json
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
 }

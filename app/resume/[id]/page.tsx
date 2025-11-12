@@ -13,32 +13,8 @@ import {
 } from "@/app/components/Accordion";
 import { CheckCheck, Lightbulb } from "lucide-react";
 import { getServerSession } from "@/lib/auth-server";
+import { prisma } from "@/lib/prisma";
 import type { Feedback } from "@/types";
-
-// Mock feedback for placeholder
-const mockFeedback: Feedback = {
-  overallScore: 0,
-  ATS: {
-    score: 0,
-    tips: [],
-  },
-  toneAndStyle: {
-    score: 0,
-    tips: [],
-  },
-  content: {
-    score: 0,
-    tips: [],
-  },
-  structure: {
-    score: 0,
-    tips: [],
-  },
-  skills: {
-    score: 0,
-    tips: [],
-  },
-};
 
 export default async function ResumePage({
   params,
@@ -51,6 +27,25 @@ export default async function ResumePage({
   }
 
   const { id } = await params;
+
+  const resume = await prisma.resume.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      userId: true,
+      jobTitle: true,
+      companyName: true,
+      jobDescription: true,
+      feedback: true,
+      createdAt: true,
+    },
+  });
+
+  if (!resume || resume.userId !== session.user.id) {
+    redirect("/");
+  }
+
+  const feedback = resume.feedback as unknown as Feedback;
 
   return (
     <main className="relative overflow-hidden pt-12">
@@ -65,11 +60,16 @@ export default async function ResumePage({
           <div className="flex flex-col gap-2">
             <span className="section-eyebrow w-fit">Resume analysis</span>
             <h1 className="text-4xl font-semibold text-slate-900 sm:text-5xl">
-              Resume analysis coming soon
+              {resume.jobTitle}
+              {resume.companyName && ` at ${resume.companyName}`}
             </h1>
             <p className="text-base text-slate-600">
-              Backend integration in progress. Analysis will be available once
-              the backend is deployed.
+              Analyzed on{" "}
+              {new Date(resume.createdAt).toLocaleDateString("en-US", {
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+              })}
             </p>
           </div>
         </header>
@@ -84,12 +84,11 @@ export default async function ResumePage({
               </div>
               <div className="preview-rail__frame gradient-border overflow-hidden">
                 <div className="flex h-full items-center justify-center bg-slate-100 text-sm text-slate-500">
-                  Preview will be available after backend integration
+                  Resume preview unavailable
                 </div>
               </div>
               <p className="text-xs text-slate-500">
-                Resume preview will be generated from the uploaded PDF once the
-                backend is ready.
+                PDF files are processed server-side and not stored for preview.
               </p>
             </div>
           </aside>
@@ -97,14 +96,14 @@ export default async function ResumePage({
           <section className="feedback-section lg:pl-0">
             <div className="space-y-6">
               <div className="surface-card surface-card--tight">
-                <Summary feedback={mockFeedback} />
+                <Summary feedback={feedback} />
               </div>
 
               <Accordion
                 className="space-y-5"
                 defaultOpen={["ats", "detailed-coaching"]}
                 allowMultiple
-                persistKey={`resume-placeholder`}
+                persistKey={`resume-${resume.id}`}
                 showControls
               >
                 <AnalysisSection
@@ -115,12 +114,12 @@ export default async function ResumePage({
                   description="Stay above 80 to stay visible in recruiter dashboards."
                   badge={{
                     label: "Score",
-                    value: mockFeedback.ATS.score || 0,
+                    value: feedback.ATS.score || 0,
                   }}
                 >
                   <ATS
-                    score={mockFeedback.ATS.score || 0}
-                    suggestions={mockFeedback.ATS.tips || []}
+                    score={feedback.ATS.score || 0}
+                    suggestions={feedback.ATS.tips || []}
                   />
                 </AnalysisSection>
 
@@ -135,7 +134,7 @@ export default async function ResumePage({
                     value: 4,
                   }}
                 >
-                  <Details feedback={mockFeedback} />
+                  <Details feedback={feedback} />
                 </AnalysisSection>
               </Accordion>
             </div>

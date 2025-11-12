@@ -8,6 +8,7 @@ import {
   AccordionItem,
 } from "./Accordion";
 import DiffCard from "./DiffCard";
+import type { LineImprovement } from "@/types";
 import { toast } from "sonner";
 
 interface LineByLineImprovementsProps {

@@ -4,6 +4,7 @@ import Link from "next/link";
 import ScoreCircle from "./ScoreCircle";
 import { useEffect, useMemo, useState, useRef } from "react";
 import React from "react";
+import type { Resume } from "@/types";
 
 const ResumeCard = React.memo(
   ({

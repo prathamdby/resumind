@@ -5,8 +5,25 @@ export async function analyzeResume(
   jobTitle: string,
   jobDescription: string,
   companyName?: string,
-): Promise<Feedback> {
-  throw new Error("Backend not implemented yet.");
+): Promise<{ resumeId: string; feedback: Feedback }> {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("jobTitle", jobTitle);
+  formData.append("jobDescription", jobDescription);
+  if (companyName) formData.append("companyName", companyName);
+
+  const response = await fetch("/api/analyze", {
+    method: "POST",
+    body: formData,
+  });
+
+  const result = await response.json();
+
+  if (!response.ok || !result.success) {
+    throw new Error(result.error || "Failed to analyze resume");
+  }
+
+  return { resumeId: result.resumeId, feedback: result.feedback };
 }
 
 export async function importJobFromUrl(url: string): Promise<{

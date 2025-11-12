@@ -6,6 +6,7 @@ import {
   AccordionItem,
 } from "./Accordion";
 import ScoreBadge from "./ScoreBadge";
+import type { Feedback } from "@/types";
 
 const CategoryHeader = ({
   title,

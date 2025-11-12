@@ -1,5 +1,6 @@
 ﻿import ScoreBadge from "./ScoreBadge";
 import ScoreGauge from "./ScoreGauge";
+import type { Feedback } from "@/types";
 
 const buildCategoryCopy = (
   title: string,

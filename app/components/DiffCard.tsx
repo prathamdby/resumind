@@ -2,6 +2,7 @@ import { useState } from "react";
 import { CheckCheck, Copy, ListChecks, Undo2 } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import { toast } from "sonner";
+import type { LineImprovement } from "@/types";
 
 interface DiffCardProps {
   improvement: LineImprovement;

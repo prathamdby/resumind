@@ -14,26 +14,7 @@ interface Job {
   requiredSkills: string[];
 }
 
-interface Resume {
-  id: string;
-  companyName?: string;
-  jobTitle?: string;
-  jobDescription?: string;
-  // Remove: imagePath, resumePath (no files stored)
-  feedback: Feedback | null; // null until backend exists
-}
-
-interface LineImprovement {
-  section: "summary" | "experience" | "education" | "skills" | "other";
-  sectionTitle: string;
-  original: string;
-  suggested: string;
-  reason: string;
-  priority: "high" | "medium" | "low";
-  category: "quantify" | "action-verb" | "keyword" | "clarity" | "ats";
-}
-
-interface Feedback {
+export interface Feedback {
   overallScore: number;
   ATS: {
     score: number;
@@ -76,4 +57,22 @@ interface Feedback {
   };
   lineImprovements?: LineImprovement[];
   coldOutreachMessage?: string;
+}
+
+export interface LineImprovement {
+  section: "summary" | "experience" | "education" | "skills" | "other";
+  sectionTitle: string;
+  original: string;
+  suggested: string;
+  reason: string;
+  priority: "high" | "medium" | "low";
+  category: "quantify" | "action-verb" | "keyword" | "clarity" | "ats";
+}
+
+export interface Resume {
+  id: string;
+  companyName?: string;
+  jobTitle?: string;
+  jobDescription?: string;
+  feedback: Feedback | null;
 }

@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 
 export const RATE_LIMIT_CONFIG = {
   "/api/import-job": { window: 60, max: 5 },
+  "/api/analyze": { window: 60, max: 2 },
   default: { window: 60, max: 100 },
 } as const;
 

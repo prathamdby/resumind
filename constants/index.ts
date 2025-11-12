@@ -110,6 +110,7 @@ LINE-BY-LINE IMPROVEMENTS (provide 8–12):
     - Mark priority as "medium" for moderate improvements
     - Mark priority as "low" for minor refinements
     - Categorize each improvement: "quantify" (adding metrics), "action-verb" (stronger verbs), "keyword" (job description alignment), "clarity" (readability), or "ats" (formatting/parsing)
+    - For "section" field, use exactly one of: "summary", "experience", "education", "skills", or "other" (use "other" for certifications, projects, achievements, contact, or any other section type)
     - Ensure "original" text is exact and specific enough to locate in the resume
     - Make "suggested" text a complete, ready-to-use replacement
     - Explain "reason" in 1-2 sentences focusing on the impact and why it matters
@@ -146,4 +147,27 @@ LINE-BY-LINE IMPROVEMENTS (provide 8–12):
     Provide the feedback using the following format: ${AIResponseFormat}
     Return the analysis as a JSON object, without any other text and without the backticks.
     Do not include any other text or comments.`;
+};
+
+export const getAISystemPrompt = () => {
+  return `You are a resume analysis expert. Return valid JSON (no markdown formatting, no code blocks) with this exact structure:
+
+{
+  "overallScore": number (0-100),
+  "ATS": {
+    "score": number (0-100),
+    "tips": array of objects with "type" (string: "good" or "improve") and "tip" (string)
+  },
+  "toneAndStyle": {
+    "score": number (0-100),
+    "tips": array of objects with "type", "tip", and "explanation" (string)
+  },
+  "content": { same structure as toneAndStyle },
+  "structure": { same structure as toneAndStyle },
+  "skills": { same structure as toneAndStyle },
+  "lineImprovements": optional array of objects with "section" (string: use "summary", "experience", "education", "skills", or "other" for any other section), "sectionTitle", "original", "suggested", "reason", "priority" (string: "high"/"medium"/"low"), "category" (string),
+  "coldOutreachMessage": optional string
+}
+
+Be thorough and specific in your analysis.`;
 };

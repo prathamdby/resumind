@@ -79,6 +79,9 @@ GOOGLE_CLIENT_SECRET="<your-google-oauth-client-secret>"
 # Cerebras AI Configuration
 CEREBRAS_API_KEY="<your-cerebras-api-key>"
 
+# PDF Service Configuration
+PDF_SERVICE_URL="http://localhost:8000"  # URL of the Python FastAPI service for PDF to markdown conversion
+
 # Rate Limiting (optional)
 DISABLE_RATE_LIMITING="false"  # Set to "true" in development if needed
 ```
@@ -105,7 +108,12 @@ bunx prisma generate
 bunx prisma migrate dev --name init_better_auth
 ```
 
-**Note:** The job import feature uses rate limiting (5 requests per minute per user) to prevent abuse. Rate limits are stored in the database and persist across serverless invocations.
+**Note:**
+
+- The job import feature uses rate limiting (5 requests per minute per user) to prevent abuse. Rate limits are stored in the database and persist across serverless invocations.
+- Resume analysis uses rate limiting (2 requests per minute per user).
+- The PDF service processes PDFs synchronously (one at a time). Under concurrent load, requests will queue and may timeout.
+- Maximum file size is 20 MB. PDFs are converted to markdown (max 15K characters) before AI analysis.
 
 5. Start the development server:
 

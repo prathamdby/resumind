@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import FileUploader from "@/app/components/FileUploader";
 import ImportFromSiteModal from "@/app/components/ImportFromSiteModal";
 import { cn } from "@/app/lib/utils";
@@ -27,6 +28,7 @@ const checklist = [
 ];
 
 export default function UploadForm() {
+  const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
   const [statusText, setStatusText] = useState("Upload your resume to begin");
   const [file, setFile] = useState<File | null>(null);
@@ -176,22 +178,40 @@ export default function UploadForm() {
     setStatusText("Analyzing your resume...");
 
     try {
-      await analyzeResume(
+      const { resumeId, feedback } = await analyzeResume(
         file,
         jobTitle.trim(),
         jobDescription.trim(),
         companyName.trim() || undefined,
       );
+
+      toast.success("Analysis complete!");
+      router.push(`/resume/${resumeId}`);
     } catch (error) {
       const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Backend not implemented yet. PDF will be converted to markdown and analyzed by AI.";
+        error instanceof Error ? error.message : "Analysis failed";
 
-      setStatusText("Backend not ready");
-      toast.error("Analysis unavailable", {
-        description: errorMessage,
-      });
+      if (
+        errorMessage.includes("Too many requests") ||
+        errorMessage.includes("rate limit")
+      ) {
+        toast.error("Rate limit exceeded", {
+          description: "Please wait a moment and try again.",
+        });
+      } else if (errorMessage.includes("timeout")) {
+        toast.error("Request timed out", {
+          description:
+            "The PDF may be too complex. Please try a simpler format.",
+        });
+      } else if (errorMessage.includes("too detailed")) {
+        toast.error("Resume too detailed", {
+          description: "Please use a simpler resume format with less content.",
+        });
+      } else {
+        toast.error("Analysis failed", { description: errorMessage });
+      }
+
+      setStatusText("Upload your resume to begin");
     } finally {
       setIsProcessing(false);
     }

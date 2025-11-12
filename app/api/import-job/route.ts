@@ -60,8 +60,12 @@ async function extractJobData(content: string): Promise<{
   jobTitle: string;
   jobDescription: string;
 }> {
-  const systemPrompt =
-    "You are a job posting analyzer. Extract structured data from the provided text and return valid JSON with exactly these fields: companyName, jobTitle, jobDescription. Be accurate and concise.";
+  const systemPrompt = `You are a job posting analyzer. Extract structured data from the provided text and return valid JSON with exactly these fields:
+- companyName: string (company name, required)
+- jobTitle: string (job title/position, required)
+- jobDescription: string (full job description, minimum 50 characters, required)
+
+Return only valid JSON, no markdown formatting, no code blocks.`;
 
   const userPrompt = `Extract the job posting details from the following text:\n\n${content}`;
 
@@ -88,7 +92,13 @@ async function extractJobData(content: string): Promise<{
 
   let parsed: unknown;
   try {
-    parsed = JSON.parse(contentText);
+    const cleaned = contentText
+      .trim()
+      .replace(/^```json\s*/i, "")
+      .replace(/^```\s*/i, "")
+      .replace(/\s*```$/i, "")
+      .trim();
+    parsed = JSON.parse(cleaned);
   } catch {
     throw new Error("Invalid JSON response from AI");
   }
@@ -158,8 +168,6 @@ export async function POST(request: NextRequest) {
       data: jobData,
     });
   } catch (error) {
-    console.error("[Import Job] Error:", error);
-
     if (error instanceof Error) {
       if (error.message.includes("timeout")) {
         return NextResponse.json(

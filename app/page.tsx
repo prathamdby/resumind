@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import Navbar from "@/app/components/Navbar";
+import ResumeCard from "@/app/components/ResumeCard";
 import { getServerSession } from "@/lib/auth-server";
+import { prisma } from "@/lib/prisma";
+import type { Feedback } from "@/types";
 
 const heroInsights = [
   {
@@ -26,6 +29,20 @@ export default async function Home() {
   if (!session) {
     redirect("/auth");
   }
+
+  const resumes = await prisma.resume.findMany({
+    where: { userId: session.user.id },
+    select: {
+      id: true,
+      jobTitle: true,
+      companyName: true,
+      createdAt: true,
+      feedback: true,
+    },
+    orderBy: { createdAt: "desc" },
+    take: 50,
+  });
+
   return (
     <main className="relative overflow-hidden pt-12">
       <div className="hero-decor" aria-hidden="true" />
@@ -136,21 +153,41 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className="surface-card surface-card--tight mx-auto flex w-full max-w-3xl flex-col items-center gap-6 py-16 text-center">
-            <div className="rounded-2xl bg-gradient-to-r from-indigo-100/80 to-pink-100/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.32em] text-indigo-600">
-              Getting started
+          {resumes.length === 0 ? (
+            <div className="surface-card surface-card--tight mx-auto flex w-full max-w-3xl flex-col items-center gap-6 py-16 text-center">
+              <div className="rounded-2xl bg-gradient-to-r from-indigo-100/80 to-pink-100/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.32em] text-indigo-600">
+                Getting started
+              </div>
+              <h3 className="text-2xl font-semibold text-slate-900 sm:text-3xl">
+                No analyses yet. Your first upload unlocks personalized insights
+              </h3>
+              <p className="max-w-xl text-slate-600">
+                Drag in a PDF resume, share the role you are focused on, and
+                Resumind will return actionable guidance within seconds.
+              </p>
+              <Link href="/upload" className="primary-button px-5 py-3 text-sm">
+                Upload your first resume
+              </Link>
             </div>
-            <h3 className="text-2xl font-semibold text-slate-900 sm:text-3xl">
-              No analyses yet. Your first upload unlocks personalized insights
-            </h3>
-            <p className="max-w-xl text-slate-600">
-              Drag in a PDF resume, share the role you are focused on, and
-              Resumind will return actionable guidance within seconds.
-            </p>
-            <Link href="/upload" className="primary-button px-5 py-3 text-sm">
-              Upload your first resume
-            </Link>
-          </div>
+          ) : (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {resumes.map((resume) => {
+                const feedback = resume.feedback as unknown as Feedback;
+                return (
+                  <ResumeCard
+                    key={resume.id}
+                    resume={{
+                      id: resume.id,
+                      companyName: resume.companyName || undefined,
+                      jobTitle: resume.jobTitle,
+                      jobDescription: "",
+                      feedback,
+                    }}
+                  />
+                );
+              })}
+            </div>
+          )}
         </section>
       </section>
     </main>
