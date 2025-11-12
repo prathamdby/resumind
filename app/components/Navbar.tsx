@@ -10,12 +10,13 @@ const Navbar = () => {
   const menuRef = useRef<HTMLDivElement>(null);
 
   const { data: session } = useSession();
-  const userInitial =
-    (session as any)?.user?.name?.charAt(0)?.toUpperCase() ??
-    (session as any)?.user?.email?.charAt(0)?.toUpperCase() ??
-    "U";
-  const displayName =
-    (session as any)?.user?.name ?? (session as any)?.user?.email ?? "Account";
+  const userName =
+    typeof session?.user?.name === "string" ? session.user.name : undefined;
+  const userEmail =
+    typeof session?.user?.email === "string" ? session.user.email : undefined;
+  const initialSource = (userName ?? userEmail ?? "").trim();
+  const userInitial = initialSource.charAt(0).toUpperCase() || "U";
+  const displayName = (userName ?? userEmail ?? "Account").trim() || "Account";
 
   // Close menu when clicking outside
   useEffect(() => {
