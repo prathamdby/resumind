@@ -269,7 +269,7 @@
   }
 
   .back-button {
-    @apply inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50;
+    @apply inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50;
   }
 
   .form-div {
