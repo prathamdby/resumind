@@ -60,14 +60,43 @@ async function extractJobData(content: string): Promise<{
   jobTitle: string;
   jobDescription: string;
 }> {
-  const systemPrompt = `You are a job posting analyzer. Extract structured data from the provided text and return valid JSON with exactly these fields:
-- companyName: string (company name, required)
-- jobTitle: string (job title/position, required)
-- jobDescription: string (full job description, minimum 50 characters, required)
+  const systemPrompt = `You are an expert job posting analyzer. Your task is to accurately extract structured information from job postings.
 
-Return only valid JSON, no markdown formatting, no code blocks.`;
+Your approach should follow this step-by-step process:
+1. First, identify and locate the job title/position name
+2. Then, identify the company name (may appear in headers, footers, or body text)
+3. Finally, extract the complete job description (including responsibilities, requirements, qualifications, and benefits)
 
-  const userPrompt = `Extract the job posting details from the following text:\n\n${content}`;
+Extraction guidelines:
+- companyName: Extract the exact company name. If multiple names appear, use the primary employer name. If unclear, use the most prominent company reference.
+- jobTitle: Extract the exact job title/position name. This is typically in headers or prominent text near the beginning.
+- jobDescription: Extract the FULL job description including all sections: overview, responsibilities, requirements, qualifications, benefits, and any other relevant details. Preserve formatting where meaningful (use line breaks for readability).
+
+Return ONLY valid JSON matching this exact structure:
+{
+  "companyName": "string",
+  "jobTitle": "string",
+  "jobDescription": "string"
+}
+
+Critical: Return only valid JSON, no markdown formatting, no code blocks, no explanatory text.`;
+
+  const userPrompt = `Let's think step by step to extract the job posting details accurately.
+
+First, analyze the text structure:
+- Where is the job title located?
+- Where is the company name mentioned?
+- What sections make up the job description?
+
+Then extract the information following this plan:
+1. Identify the job title from headers or prominent text
+2. Identify the company name from context clues
+3. Extract the complete job description including all relevant sections
+
+Job posting text:
+${content}
+
+Now extract and return the structured JSON data.`;
 
   const aiPromise = cerebras.chat.completions.create({
     messages: [
