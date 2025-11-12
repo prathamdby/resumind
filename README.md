@@ -1,25 +1,22 @@
 # Resumind - AI Resume Analyzer
 
-An intelligent resume analysis platform that provides personalized feedback to help you land your dream job. Get detailed insights on your resume's ATS compatibility, content quality, structure, and more.
+An intelligent resume analysis platform that provides personalized, ATS-aligned feedback to help you land your dream job. Get detailed insights on your resume's compatibility, content quality, structure, and actionable improvements tailored to specific job postings.
 
-## ⚠️ Current Status - UI Shell with Authentication
+## ✨ Features
 
-**This application is currently in migration.** The UI shell has been migrated to Next.js 16 with authentication implemented. The following features are placeholder:
-
-- ❌ Resume analysis (returns placeholder error)
-- ❌ PDF upload/storage (no persistence)
-- ❌ PDF preview generation (not implemented)
-- ❌ Viewing past analyses (no data storage)
-
-**What works:**
-
-- ✅ Authentication with Google OAuth (Better Auth)
-- ✅ Protected routes (all routes except `/auth` require authentication)
-- ✅ UI shell with navigation
-- ✅ Form validation
-- ✅ Job import from URLs (via Jina.ai + Cerebras AI)
-- ✅ Toast notifications
-- ✅ Responsive design
+- ✅ **AI-Powered Resume Analysis** - Upload your PDF resume and receive comprehensive feedback across multiple categories (ATS compatibility, tone & style, content, structure, skills)
+- ✅ **Job-Specific Tailoring** - Import job postings from URLs or paste descriptions to get targeted feedback for specific roles
+- ✅ **Visual Resume Previews** - View preview images of your uploaded resumes alongside analysis results
+- ✅ **Detailed Feedback Categories** - Get scored feedback with actionable tips for:
+  - ATS compatibility
+  - Tone and style
+  - Content quality
+  - Document structure
+  - Skills alignment
+  - Line-by-line improvements with suggested rewrites
+- ✅ **Resume Management** - Track all your analyses in a dashboard, delete individual resumes, or wipe all data
+- ✅ **Secure Authentication** - Google OAuth integration with Better Auth
+- ✅ **Rate Limiting** - Built-in protection against abuse (2 analyses/min, 5 job imports/min)
 
 ## 🛠️ Tech Stack
 
@@ -27,6 +24,9 @@ An intelligent resume analysis platform that provides personalized feedback to h
 - **Runtime**: Bun (for development and builds)
 - **Authentication**: Better Auth with Google OAuth
 - **Database**: Neon PostgreSQL with Prisma ORM
+- **AI**: Cerebras AI for resume analysis and job data extraction
+- **PDF Processing**: External PDF service for markdown conversion and preview generation
+- **Job Import**: Jina.ai for web content extraction
 - **Styling**: Tailwind CSS v4 with custom animations
 - **File Upload**: React Dropzone
 - **UI Components**: Lucide React icons, Sonner toasts
@@ -38,6 +38,8 @@ An intelligent resume analysis platform that provides personalized feedback to h
 - [Bun](https://bun.sh) v1.0 or higher
 - A Neon PostgreSQL database (sign up at [neon.tech](https://neon.tech))
 - Google OAuth credentials (from [Google Cloud Console](https://console.cloud.google.com))
+- Cerebras API key (from [Cerebras Cloud](https://www.cerebras.net/cloud))
+- PDF service endpoint (for PDF to markdown conversion and preview generation)
 - A modern web browser
 
 ### Installation
@@ -97,6 +99,9 @@ DISABLE_RATE_LIMITING="false"  # Set to "true" in development if needed
   4. Create OAuth 2.0 credentials
   5. Add authorized redirect URI: `http://localhost:3000/api/auth/callback/google` (for development)
   6. Copy the Client ID and Client Secret to your `.env` file
+- The PDF service should expose:
+  - `POST /convert` - Accepts PDF file, returns `{ markdown: string, preview_image?: string }`
+  - `GET /health` - Health check endpoint
 
 4. Set up the database:
 
@@ -133,19 +138,31 @@ Run TypeScript type checking:
 bun run typecheck
 ```
 
-## 📖 How to Use (Current - UI Shell with Auth)
+## 📖 How to Use
 
-1. **Auth Page** (`/auth`) - Sign in with Google OAuth (required to access other pages)
-2. **Home Page** (`/`) - View hero section and empty state (no resumes stored) - Protected route
-3. **Upload Page** (`/upload`) - Fill out form and upload PDF (shows "backend not ready" toast) - Protected route
-4. **Resume Detail** (`/resume/:id`) - Shows placeholder with mock feedback structure - Protected route
+1. **Sign In** (`/auth`) - Authenticate with Google OAuth (required to access other pages)
+2. **Upload & Analyze** (`/upload`) - Upload your PDF resume and provide job details:
+   - Enter job title and description (required)
+   - Optionally import from a job posting URL or paste company name
+   - Upload PDF resume (max 20 MB)
+   - Receive comprehensive AI feedback within seconds
+3. **Dashboard** (`/`) - View all your resume analyses:
+   - See preview images, job titles, and companies
+   - Click any resume card to view detailed feedback
+   - Delete individual resumes or wipe all data
+4. **Resume Detail** (`/resume/:id`) - View detailed analysis:
+   - Overall score and category breakdowns
+   - ATS compatibility tips
+   - Tone, content, structure, and skills feedback
+   - Line-by-line improvement suggestions with rewrites
+   - Visual resume preview
 
 ### Available Routes
 
 - **`/auth`** - Google OAuth sign-in page (public)
-- **`/`** (home) - Dashboard with hero section (always shows empty state) - Protected
-- **`/upload`** - Upload form with placeholder backend call - Protected
-- **`/resume/:id`** - Resume detail page with placeholder feedback - Protected
+- **`/`** (home) - Dashboard with all resume analyses - Protected
+- **`/upload`** - Upload form for new resume analysis - Protected
+- **`/resume/:id`** - Detailed resume analysis view - Protected
 
 All routes except `/auth` are protected and require authentication. Unauthenticated users are automatically redirected to `/auth`.
 
@@ -169,61 +186,43 @@ This serves the production build via Next.js on port 3000.
 
 ```
 ├── app/
-│   ├── components/         # Reusable UI components (Navbar, FileUploader, etc.)
-│   ├── lib/
-│   │   └── utils.ts       # Utility functions (UUID generation, etc.)
-│   ├── upload/            # Upload page
-│   ├── resume/[id]/       # Resume detail page (dynamic route)
-│   ├── auth/              # Auth placeholder page
-│   ├── layout.tsx         # Root layout component
-│   ├── page.tsx           # Home page
-│   └── globals.css        # Global styles
+│   ├── api/
+│   │   ├── analyze/          # Resume analysis endpoint
+│   │   ├── auth/             # Better Auth route handlers
+│   │   ├── import-job/       # Job posting import endpoint
+│   │   ├── resumes/          # Resume CRUD endpoints
+│   │   └── user/wipe/        # Bulk data deletion endpoint
+│   ├── components/           # Reusable UI components
+│   │   ├── Accordion.tsx
+│   │   ├── AnalysisSection.tsx
+│   │   ├── ATS.tsx
+│   │   ├── FileUploader.tsx
+│   │   ├── ResumeCard.tsx
+│   │   └── ...
+│   ├── resume/[id]/         # Resume detail page (dynamic route)
+│   ├── upload/              # Upload page
+│   ├── auth/                # Auth page
+│   ├── layout.tsx           # Root layout component
+│   ├── page.tsx             # Home/dashboard page
+│   └── globals.css          # Global styles
 ├── lib/
-│   ├── api.ts             # Placeholder API functions
-│   ├── auth.ts            # Better Auth server configuration
-│   ├── auth-client.ts     # Better Auth client utilities
-│   └── prisma.ts          # Prisma client singleton
-├── app/
-│   └── api/
-│       └── auth/
-│           └── [...all]/
-│               └── route.ts  # Auth API route handler
-├── middleware.ts          # Route protection middleware
-├── prisma/
-│   ├── schema.prisma      # Prisma schema with Better Auth models
-│   └── migrations/        # Database migration history
+│   ├── ai.ts                # Cerebras AI client configuration
+│   ├── api.ts               # API client utilities
+│   ├── auth.ts              # Better Auth server configuration
+│   ├── auth-client.ts       # Better Auth client utilities
+│   ├── auth-server.ts       # Server-side auth helpers
+│   ├── prisma.ts            # Prisma client singleton
+│   ├── rate-limit.ts        # Rate limiting implementation
+│   └── schemas.ts           # Zod validation schemas
 ├── constants/
-│   └── index.ts           # AI prompts and response format schemas (for future backend)
+│   └── index.ts             # AI prompts and response format schemas
 ├── types/
-│   └── index.d.ts         # Application type definitions
-└── public/                # Static assets (icons, images)
+│   └── index.d.ts           # Application type definitions
+├── prisma/
+│   ├── schema.prisma        # Prisma schema with Better Auth models
+│   └── migrations/          # Database migration history
+└── public/                  # Static assets (icons, images)
 ```
-
-## 🔮 Backend TODO (Post-Migration)
-
-The following backend features need to be implemented:
-
-1. **API Endpoints**:
-   - `POST /api/analyze` - Accepts PDF file, converts to markdown, sends to AI, returns Feedback
-   - `POST /api/job-import` - Proxy for CORS-blocked job sites
-   - `GET/POST /api/resumes` - CRUD operations for resume storage
-
-2. **PDF Processing**:
-   - PDF to markdown conversion (e.g., `pdf-parse`, `pdfjs-dist` server-side, or `pypdf2`)
-
-3. **AI Integration**:
-   - Integrate AI provider (Anthropic Claude API, OpenAI, etc.)
-   - Use prompts from `constants/index.ts`
-
-4. **Database**:
-   - ✅ Neon PostgreSQL configured with Prisma ORM
-   - ⏳ Resume storage models need to be added
-
-5. **Authentication**:
-   - ✅ Implemented with Better Auth and Google OAuth
-
-6. **Blob Storage** (if needed):
-   - Add blob storage for PDFs (S3, Vercel Blob, etc.)
 
 ## 🤝 Contributing
 
@@ -249,6 +248,7 @@ Contributions are welcome! Please follow these steps:
 - Use **Tailwind CSS** utility classes (2-space indentation)
 - Keep pages modular: page logic in `app/`, shared UI in `app/components/`
 - Maintain type safety: all PRs must pass `bun run typecheck`
+- See `AGENTS.md` for detailed architecture patterns and contributor onboarding
 
 ### Database Migrations
 
@@ -269,7 +269,3 @@ bunx prisma migrate deploy
 ## 📄 License
 
 This project is available under the MIT License.
-
----
-
-Built with ❤️ using Next.js 16. Backend integration coming soon.
