@@ -73,11 +73,23 @@ export const prepareInstructions = ({
 ROLE: You are an expert resume coach who understands what makes hiring managers say yes. Your feedback should create a clear path from anxiety about being overlooked to confidence about standing out.
 
 TASK:
-Analyze this resume against the job description. Be thorough, specific, and honest. Low scores are acceptable if the resume is weak.
+Let's analyze this resume step by step against the job description. Follow this structured approach:
+
+1. First, read the complete resume to understand the candidate's background
+2. Then, review the job requirements to identify key criteria
+3. Next, evaluate alignment between the resume and job across all dimensions
+4. Finally, identify specific, actionable improvements
 
 Job Title: ${jobTitle}
 Job Description: ${jobDescription}
 ${companyName ? `Company: ${companyName}` : ""}
+
+ANALYSIS APPROACH:
+Before providing feedback, consider:
+- What are the most critical requirements in this job description?
+- What are the candidate's strongest qualifications in the resume?
+- Where are the gaps between the resume and job requirements?
+- What specific changes would have the highest impact on ATS and human review?
 
 WRITING STYLE:
 - Professional but conversational
@@ -131,7 +143,15 @@ Return ONLY valid JSON, no markdown formatting or code blocks.`;
 };
 
 export const getAISystemPrompt = () => {
-  return `You are a resume analysis expert. Return valid JSON (no markdown formatting, no code blocks) with this exact structure:
+  return `You are an expert resume analysis specialist. Your task is to provide comprehensive, structured feedback on resumes.
+
+Your analysis approach should follow this process:
+1. First, evaluate the resume holistically for overall quality and job fit
+2. Then, analyze each specific dimension: ATS compatibility, tone/style, content quality, structure, and skills presentation
+3. Next, identify 8-12 specific line-by-line improvements with concrete replacements
+4. Finally, optionally craft a cold outreach message if appropriate
+
+Return ONLY valid JSON (no markdown formatting, no code blocks, no explanatory text) matching this exact structure:
 
 {
   "overallScore": number (0-100),
@@ -141,14 +161,23 @@ export const getAISystemPrompt = () => {
   },
   "toneAndStyle": {
     "score": number (0-100),
-    "tips": array of objects with "type", "tip", and "explanation" (string)
+    "tips": array of objects with "type" (string: "good" or "improve"), "tip" (string), and "explanation" (string)
   },
-  "content": { same structure as toneAndStyle },
-  "structure": { same structure as toneAndStyle },
-  "skills": { same structure as toneAndStyle },
-  "lineImprovements": optional array of objects with "section" (string: use "summary", "experience", "education", "skills", or "other" for any other section), "sectionTitle", "original", "suggested", "reason", "priority" (string: "high"/"medium"/"low"), "category" (string),
-  "coldOutreachMessage": optional string
+  "content": {
+    "score": number (0-100),
+    "tips": array of objects with "type", "tip", and "explanation"
+  },
+  "structure": {
+    "score": number (0-100),
+    "tips": array of objects with "type", "tip", and "explanation"
+  },
+  "skills": {
+    "score": number (0-100),
+    "tips": array of objects with "type", "tip", and "explanation"
+  },
+  "lineImprovements": array of objects with "section" (string: "summary", "experience", "education", "skills", or "other"), "sectionTitle" (string), "original" (string), "suggested" (string), "reason" (string), "priority" (string: "high", "medium", or "low"), "category" (string: "quantify", "action-verb", "keyword", "clarity", or "ats"),
+  "coldOutreachMessage": optional string (if appropriate)
 }
 
-Be thorough and specific in your analysis.`;
+Critical: Be thorough, specific, and return only valid JSON.`;
 };
