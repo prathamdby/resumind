@@ -3,38 +3,30 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "react-router build",
-    "dev": "react-router dev",
-    "start": "react-router-serve ./build/server/index.js",
-    "typecheck": "react-router typegen && tsc"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "lint": "next lint"
   },
   "dependencies": {
-    "@heyputer/puter.js": "2.1.2",
-    "@react-router/node": "^7.7.1",
-    "@react-router/serve": "^7.7.1",
-    "@vercel/analytics": "^1.5.0",
     "clsx": "^2.1.1",
-    "isbot": "^5.1.27",
     "lucide-react": "^0.454.0",
-    "pdfjs-dist": "^5.4.54",
+    "next": "^16.0.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-dropzone": "^14.3.8",
-    "react-router": "^7.7.1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
-    "zustand": "^5.0.8"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@react-router/dev": "^7.7.1",
-    "@tailwindcss/vite": "^4.1.4",
+    "@tailwindcss/postcss": "^4.1.4",
     "@types/node": "^20",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "tailwindcss": "^4.1.4",
     "tw-animate-css": "^1.3.7",
-    "typescript": "^5.8.3",
-    "vite": "^6.3.3",
-    "vite-tsconfig-paths": "^5.1.4"
+    "typescript": "^5.8.3"
   }
 }

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { CheckCheck, Copy, ListChecks, Undo2 } from "lucide-react";
-import { cn } from "~/lib/utils";
+import { cn } from "@/app/lib/utils";
 import { toast } from "sonner";
 
 interface DiffCardProps {

@@ -1,4 +1,4 @@
-import { cn } from "~/lib/utils";
+import { cn } from "@/app/lib/utils";
 import type { LucideIcon } from "lucide-react";
 
 interface SectionHeaderProps {

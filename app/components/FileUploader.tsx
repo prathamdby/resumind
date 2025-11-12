@@ -1,8 +1,10 @@
+"use client";
+
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import type { FileRejection } from "react-dropzone";
 import { toast } from "sonner";
-import { cn, formatSize } from "~/lib/utils";
+import { cn, formatSize } from "@/app/lib/utils";
 
 interface FileUploaderProps {
   onFileSelect?: (file: File | null) => void;

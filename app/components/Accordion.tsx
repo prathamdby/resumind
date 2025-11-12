@@ -1,4 +1,6 @@
-﻿import type { ReactNode } from "react";
+﻿"use client";
+
+import type { ReactNode } from "react";
 import React, {
   createContext,
   useContext,
@@ -6,7 +8,7 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
-import { cn } from "~/lib/utils";
+import { cn } from "@/app/lib/utils";
 
 interface AccordionContextType {
   activeItems: string[];

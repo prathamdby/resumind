@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useId, useRef, useState } from "react";
 
 const ScoreGauge = ({ score = 75 }: { score: number }) => {

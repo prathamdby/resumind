@@ -1,20 +1,19 @@
-﻿import { Link } from "react-router";
+﻿"use client";
+
+import Link from "next/link";
 import ScoreCircle from "./ScoreCircle";
 import { useEffect, useMemo, useState, useRef } from "react";
-import { usePuterStore } from "~/lib/puter";
 import React from "react";
 
 const ResumeCard = React.memo(
   ({
-    resume: { id, companyName, jobTitle, feedback, imagePath },
+    resume: { id, companyName, jobTitle, feedback },
     onDelete,
   }: {
     resume: Resume;
     onDelete?: (id: string) => void;
   }) => {
-    const { fs } = usePuterStore();
-    const [resumeUrl, setResumeUrl] = useState<string | null>(null);
-    const [isVisible, setIsVisible] = useState(false);
+    // Note: imagePath removed - no file storage in placeholder version
     const cardRef = useRef<HTMLDivElement>(null);
 
     const hasFeedback = typeof feedback === "object" && feedback !== null;
@@ -39,67 +38,6 @@ const ResumeCard = React.memo(
       feedback?.structure?.score,
       feedback?.skills?.score,
     ]);
-
-    // Intersection observer for lazy loading
-    useEffect(() => {
-      // Feature detection - load immediately if not supported
-      if (
-        typeof window === "undefined" ||
-        !("IntersectionObserver" in window)
-      ) {
-        setIsVisible(true);
-        return;
-      }
-
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            setIsVisible(true);
-            observer.disconnect();
-          }
-        },
-        {
-          rootMargin: "50px", // Start loading 50px before entering viewport
-        },
-      );
-
-      if (cardRef.current) {
-        observer.observe(cardRef.current);
-      }
-
-      return () => observer.disconnect();
-    }, []);
-
-    // Load image only when visible
-    useEffect(() => {
-      if (!isVisible) return;
-
-      const loadResume = async () => {
-        try {
-          const blob = await fs.read(imagePath);
-          if (!blob) return;
-          const url = URL.createObjectURL(blob);
-          setResumeUrl(url);
-        } catch (error) {
-          console.error("Failed to load resume image:", error);
-        }
-      };
-
-      loadResume();
-    }, [isVisible, imagePath, fs]);
-
-    // Cleanup URL on unmount
-    useEffect(() => {
-      return () => {
-        if (resumeUrl) {
-          try {
-            URL.revokeObjectURL(resumeUrl);
-          } catch (e) {
-            // Ignore errors from already-revoked URLs
-          }
-        }
-      };
-    }, [resumeUrl]);
 
     return (
       <div ref={cardRef} className="relative">
@@ -130,7 +68,7 @@ const ResumeCard = React.memo(
           </button>
         )}
         <Link
-          to={`/resume/${id}`}
+          href={`/resume/${id}`}
           className="group resume-card animate-in fade-in duration-700"
           aria-label={`View resume analysis for ${companyName || "this resume"}`}
         >
@@ -157,23 +95,9 @@ const ResumeCard = React.memo(
             </div>
           </div>
 
-          {resumeUrl ? (
-            <div className="gradient-border resume-card__preview">
-              <img
-                src={resumeUrl}
-                alt={
-                  companyName
-                    ? `${companyName} resume preview`
-                    : "Resume preview"
-                }
-                className="h-[320px] w-full object-cover object-top"
-              />
-            </div>
-          ) : (
-            <div className="resume-card__preview flex h-[320px] items-center justify-center bg-slate-100 text-sm text-slate-500">
-              Preview will appear after upload completes
-            </div>
-          )}
+          <div className="resume-card__preview flex h-[320px] items-center justify-center bg-slate-100 text-sm text-slate-500">
+            Preview will appear after backend integration
+          </div>
 
           {hasFeedback && (
             <div className="flex flex-col gap-4 text-sm text-slate-600">
@@ -222,7 +146,6 @@ const ResumeCard = React.memo(
     // Return true if props are equal (skip re-render)
     return (
       prevProps.resume.id === nextProps.resume.id &&
-      prevProps.resume.imagePath === nextProps.resume.imagePath &&
       prevProps.resume.companyName === nextProps.resume.companyName &&
       prevProps.resume.jobTitle === nextProps.resume.jobTitle &&
       prevProps.resume.feedback?.overallScore ===

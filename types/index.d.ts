@@ -10,9 +10,8 @@ interface Resume {
   companyName?: string;
   jobTitle?: string;
   jobDescription?: string;
-  imagePath: string;
-  resumePath: string;
-  feedback: Feedback;
+  // Remove: imagePath, resumePath (no files stored)
+  feedback: Feedback | null; // null until backend exists
 }
 
 interface LineImprovement {
