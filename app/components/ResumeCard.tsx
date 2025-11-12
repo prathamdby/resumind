@@ -1,24 +1,32 @@
-﻿import { Link } from "react-router";
+import { Link } from "react-router";
 import ScoreCircle from "./ScoreCircle";
-import { useEffect, useMemo, useState, useRef } from "react";
-import { usePuterStore } from "~/lib/puter";
+import { useMemo } from "react";
 import React from "react";
 
 const ResumeCard = React.memo(
   ({
-    resume: { id, companyName, jobTitle, feedback, imagePath },
+    resume,
     onDelete,
   }: {
     resume: Resume;
     onDelete?: (id: string) => void;
   }) => {
-    const { fs } = usePuterStore();
-    const [resumeUrl, setResumeUrl] = useState<string | null>(null);
-    const [isVisible, setIsVisible] = useState(false);
-    const cardRef = useRef<HTMLDivElement>(null);
+    const {
+      id,
+      company_name,
+      companyName,
+      job_title,
+      jobTitle,
+      feedback,
+      text_content,
+      status,
+    } = resume;
+
+    const displayCompany = company_name ?? companyName ?? "Untitled resume";
+    const displayJob =
+      job_title ?? jobTitle ?? "Add a target job to personalize guidance";
 
     const hasFeedback = typeof feedback === "object" && feedback !== null;
-
     const overallScore = hasFeedback ? feedback.overallScore : undefined;
 
     const highlightCategories = useMemo(() => {
@@ -32,77 +40,18 @@ const ResumeCard = React.memo(
       ];
 
       return pairs.sort((a, b) => b.score - a.score).slice(0, 2);
-    }, [
-      hasFeedback,
-      feedback?.toneAndStyle?.score,
-      feedback?.content?.score,
-      feedback?.structure?.score,
-      feedback?.skills?.score,
-    ]);
+    }, [hasFeedback, feedback]);
 
-    // Intersection observer for lazy loading
-    useEffect(() => {
-      // Feature detection - load immediately if not supported
-      if (
-        typeof window === "undefined" ||
-        !("IntersectionObserver" in window)
-      ) {
-        setIsVisible(true);
-        return;
-      }
+    const textPreview = (text_content ?? "").trim();
+    const textSnippet = textPreview
+      ? `${textPreview.slice(0, 200)}${textPreview.length > 200 ? "…" : ""}`
+      : "Resume text will appear here once analysis completes.";
 
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            setIsVisible(true);
-            observer.disconnect();
-          }
-        },
-        {
-          rootMargin: "50px", // Start loading 50px before entering viewport
-        },
-      );
-
-      if (cardRef.current) {
-        observer.observe(cardRef.current);
-      }
-
-      return () => observer.disconnect();
-    }, []);
-
-    // Load image only when visible
-    useEffect(() => {
-      if (!isVisible) return;
-
-      const loadResume = async () => {
-        try {
-          const blob = await fs.read(imagePath);
-          if (!blob) return;
-          const url = URL.createObjectURL(blob);
-          setResumeUrl(url);
-        } catch (error) {
-          console.error("Failed to load resume image:", error);
-        }
-      };
-
-      loadResume();
-    }, [isVisible, imagePath, fs]);
-
-    // Cleanup URL on unmount
-    useEffect(() => {
-      return () => {
-        if (resumeUrl) {
-          try {
-            URL.revokeObjectURL(resumeUrl);
-          } catch (e) {
-            // Ignore errors from already-revoked URLs
-          }
-        }
-      };
-    }, [resumeUrl]);
+    const statusLabel =
+      status === "completed" ? "Analysis ready" : "Processing";
 
     return (
-      <div ref={cardRef} className="relative">
+      <div className="relative">
         {onDelete && (
           <button
             onClick={(e) => {
@@ -111,7 +60,7 @@ const ResumeCard = React.memo(
               onDelete(id);
             }}
             className="absolute -right-2 -top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-red-200/70 bg-white/95 text-red-600 shadow-sm backdrop-blur transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-700 hover:shadow-md focus-visible:ring-2 focus-visible:ring-red-200/70 focus-visible:ring-offset-2"
-            aria-label={`Delete ${companyName || "resume"}`}
+            aria-label={`Delete ${displayCompany}`}
           >
             <svg
               className="h-4 w-4"
@@ -132,48 +81,42 @@ const ResumeCard = React.memo(
         <Link
           to={`/resume/${id}`}
           className="group resume-card animate-in fade-in duration-700"
-          aria-label={`View resume analysis for ${companyName || "this resume"}`}
+          aria-label={`View resume analysis for ${displayCompany}`}
         >
           <div className="resume-card-header">
             <div className="flex flex-col gap-2">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
-                {companyName ? "Application" : "Draft"}
+                {company_name || companyName ? "Application" : "Draft"}
               </p>
               <h3 className="text-2xl font-semibold text-slate-900">
-                {companyName || "Untitled resume"}
+                {displayCompany}
               </h3>
-              <p className="text-sm font-medium text-slate-500">
-                {jobTitle || "Add a target job to personalize guidance"}
-              </p>
+              <p className="text-sm font-medium text-slate-500">{displayJob}</p>
             </div>
             <div className="flex flex-col items-end gap-2">
               {overallScore !== undefined ? (
                 <ScoreCircle score={overallScore} />
               ) : (
                 <div className="rounded-full border border-dashed border-slate-200 px-4 py-2 text-xs font-medium uppercase tracking-[0.28em] text-slate-500">
-                  Processing
+                  {statusLabel}
                 </div>
               )}
             </div>
           </div>
 
-          {resumeUrl ? (
-            <div className="gradient-border resume-card__preview">
-              <img
-                src={resumeUrl}
-                alt={
-                  companyName
-                    ? `${companyName} resume preview`
-                    : "Resume preview"
-                }
-                className="h-[320px] w-full object-cover object-top"
-              />
+          <div className="gradient-border resume-card__preview flex h-[320px] flex-col justify-between bg-white/70 p-5 text-left">
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-indigo-500">
+                Resume text preview
+              </p>
+              <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap line-clamp-10">
+                {textSnippet}
+              </p>
             </div>
-          ) : (
-            <div className="resume-card__preview flex h-[320px] items-center justify-center bg-slate-100 text-sm text-slate-500">
-              Preview will appear after upload completes
-            </div>
-          )}
+            <span className="text-[11px] font-medium uppercase tracking-[0.28em] text-slate-400">
+              Extracted content
+            </span>
+          </div>
 
           {hasFeedback && (
             <div className="flex flex-col gap-4 text-sm text-slate-600">
@@ -219,12 +162,14 @@ const ResumeCard = React.memo(
     );
   },
   (prevProps, nextProps) => {
-    // Return true if props are equal (skip re-render)
     return (
       prevProps.resume.id === nextProps.resume.id &&
-      prevProps.resume.imagePath === nextProps.resume.imagePath &&
-      prevProps.resume.companyName === nextProps.resume.companyName &&
-      prevProps.resume.jobTitle === nextProps.resume.jobTitle &&
+      (prevProps.resume.company_name ?? prevProps.resume.companyName) ===
+        (nextProps.resume.company_name ?? nextProps.resume.companyName) &&
+      (prevProps.resume.job_title ?? prevProps.resume.jobTitle) ===
+        (nextProps.resume.job_title ?? nextProps.resume.jobTitle) &&
+      prevProps.resume.text_content === nextProps.resume.text_content &&
+      prevProps.resume.status === nextProps.resume.status &&
       prevProps.resume.feedback?.overallScore ===
         nextProps.resume.feedback?.overallScore &&
       prevProps.onDelete === nextProps.onDelete

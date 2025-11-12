@@ -3,11 +3,11 @@ import type { Route } from "./+types/home";
 import Navbar from "~/components/Navbar";
 import ResumeCard from "~/components/ResumeCard";
 import DeleteConfirmModal from "~/components/DeleteConfirmModal";
-import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router";
-import { usePuterStore } from "~/lib/puter";
+import { useMemo, useState } from "react";
+import { Link, useRevalidator } from "react-router";
+import { resumeApi } from "~/lib/services/resume-api";
 import { toast } from "sonner";
-import type { KVPair } from "@heyputer/puter.js";
+import { redirect } from "react-router";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -17,6 +17,22 @@ export function meta({}: Route.MetaArgs) {
       content: "Get personalized feedback to land your dream job",
     },
   ];
+}
+
+export async function loader({ request }: Route.LoaderArgs) {
+  try {
+    const cookie = request.headers.get("cookie");
+    const resumes = await resumeApi.list(
+      cookie ? { headers: { Cookie: cookie } } : {},
+    );
+    return { resumes };
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("401")) {
+      const url = new URL(request.url);
+      throw redirect(`/auth?next=${url.pathname}`);
+    }
+    return { resumes: [] };
+  }
 }
 
 const heroInsights = [
@@ -37,51 +53,11 @@ const heroInsights = [
   },
 ];
 
-export default function Home() {
-  const { auth, kv, fs } = usePuterStore();
-  const navigate = useNavigate();
-  const [resumes, setResumes] = useState<Resume[]>([]);
-  const [loadingResumes, setLoadingResumes] = useState(false);
+export default function Home({ loaderData }: Route.ComponentProps) {
+  const { resumes } = loaderData;
+  const revalidator = useRevalidator();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [resumeToDelete, setResumeToDelete] = useState<Resume | null>(null);
-
-  useEffect(() => {
-    if (!auth.isAuthenticated) navigate("/auth?next=/");
-  }, [auth.isAuthenticated]);
-
-  useEffect(() => {
-    const loadResumes = async () => {
-      setLoadingResumes(true);
-
-      try {
-        const items = (await kv.list("resume:*", true)) as KVPair[];
-
-        const parsedResumes: Resume[] = [];
-
-        if (items && Array.isArray(items)) {
-          for (const item of items) {
-            try {
-              const parsed = JSON.parse(item.value) as Resume;
-              if (parsed && typeof parsed === "object" && parsed.id) {
-                parsedResumes.push(parsed);
-              }
-            } catch (parseError) {
-              console.error(`Failed to parse resume ${item.key}:`, parseError);
-            }
-          }
-        }
-
-        setResumes(parsedResumes);
-      } catch (error) {
-        console.error("Failed to load resumes:", error);
-        setResumes([]);
-      } finally {
-        setLoadingResumes(false);
-      }
-    };
-
-    loadResumes();
-  }, []);
 
   const finishedResumes = useMemo(
     () => resumes.filter((resume) => !!resume.feedback),
@@ -112,24 +88,8 @@ export default function Home() {
     if (!resumeToDelete) return;
 
     try {
-      // Delete from KV store
-      await kv.delete(`resume:${resumeToDelete.id}`);
-
-      // Delete files from Puter FS
-      try {
-        await fs.delete(resumeToDelete.resumePath);
-      } catch (e) {
-        // File might not exist, continue
-      }
-
-      try {
-        await fs.delete(resumeToDelete.imagePath);
-      } catch (e) {
-        // File might not exist, continue
-      }
-
-      // Update local state
-      setResumes((prev) => prev.filter((r) => r.id !== resumeToDelete.id));
+      await resumeApi.delete(resumeToDelete.id);
+      revalidator.revalidate();
 
       toast.success("Resume deleted", {
         description: "The resume and its analysis have been removed.",
@@ -191,10 +151,13 @@ export default function Home() {
                   Spotlight
                 </p>
                 <p className="mt-1 text-lg font-semibold text-slate-900">
-                  {featuredResume?.companyName || "Your next role"}
+                  {featuredResume?.company_name ??
+                    featuredResume?.companyName ??
+                    "Your next role"}
                 </p>
                 <p className="text-sm text-slate-500">
-                  {featuredResume?.jobTitle ||
+                  {featuredResume?.job_title ??
+                    featuredResume?.jobTitle ??
                     "Run an analysis to see tailored advice"}
                 </p>
               </div>
@@ -221,19 +184,17 @@ export default function Home() {
                 </p>
               </div>
               <div className="rounded-2xl border border-slate-200/60 bg-white/80 px-4 py-3">
-                <p className="font-semibold text-slate-800">
-                  Visual resume preview
-                </p>
+                <p className="font-semibold text-slate-800">Text preview</p>
                 <p className="mt-1 text-slate-600">
-                  Compare versions side-by-side and link directly to the source
-                  PDF stored in Puter.
+                  Compare versions and review extracted resume text for
+                  accuracy.
                 </p>
               </div>
               <div className="rounded-2xl border border-slate-200/60 bg-white/80 px-4 py-3">
                 <p className="font-semibold text-slate-800">Secure storage</p>
                 <p className="mt-1 text-slate-600">
                   Your resumes stay private; delete any analysis instantly from
-                  the Wipe workspace.
+                  the dashboard.
                 </p>
               </div>
             </div>
@@ -270,19 +231,7 @@ export default function Home() {
             </div>
           </div>
 
-          {loadingResumes && (
-            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-              {Array.from({ length: 3 }).map((_, index) => (
-                <div
-                  key={`skeleton-${index}`}
-                  className="surface-card h-[320px] animate-pulse bg-white/70"
-                  aria-hidden="true"
-                />
-              ))}
-            </div>
-          )}
-
-          {!loadingResumes && hasResumes && (
+          {hasResumes && (
             <div className="resumes-section">
               {finishedResumes.map((resume: Resume) => (
                 <ResumeCard
@@ -294,7 +243,7 @@ export default function Home() {
             </div>
           )}
 
-          {!loadingResumes && !hasResumes && (
+          {!hasResumes && (
             <div className="surface-card surface-card--tight mx-auto flex w-full max-w-3xl flex-col items-center gap-6 py-16 text-center">
               <div className="rounded-2xl bg-gradient-to-r from-indigo-100/80 to-pink-100/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.32em] text-indigo-600">
                 Getting started
@@ -312,7 +261,7 @@ export default function Home() {
             </div>
           )}
 
-          {!loadingResumes && hasResumes && (
+          {hasResumes && (
             <div className="flex w-full justify-center pt-8">
               <Link
                 to="/wipe"
@@ -342,7 +291,11 @@ export default function Home() {
         isOpen={deleteModalOpen}
         onConfirm={confirmDelete}
         onCancel={cancelDelete}
-        title={resumeToDelete?.companyName || "Untitled resume"}
+        title={
+          resumeToDelete?.company_name ||
+          resumeToDelete?.companyName ||
+          "Untitled resume"
+        }
       />
     </main>
   );

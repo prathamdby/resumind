@@ -1,5 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router";
+import type { Route } from "./+types/resume";
+import { useSession } from "~/lib/auth";
+import { resumeApi } from "~/lib/services/resume-api";
+import { redirect } from "react-router";
 import ATS from "~/components/ATS";
 import Details from "~/components/Details";
 import Summary from "~/components/Summary";
@@ -13,116 +17,57 @@ import {
 } from "lucide-react";
 import AnalysisSection from "~/components/AnalysisSection";
 import LineByLineImprovements from "~/components/LineByLineImprovements";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionHeader,
-  AccordionItem,
-} from "~/components/Accordion";
-import { usePuterStore } from "~/lib/puter";
+import { Accordion } from "~/components/Accordion";
 
 export const meta = () => [
   { title: "Resumind | Review" },
   { name: "description", content: "Detailed review of your resume" },
 ];
 
-const Resume = () => {
+export async function loader({ params, request }: Route.LoaderArgs) {
+  const { id } = params;
+
+  if (!id) {
+    throw new Response("Resume ID required", { status: 400 });
+  }
+
+  try {
+    const cookie = request.headers.get("cookie");
+    const resume = await resumeApi.get(
+      id,
+      cookie ? { headers: { Cookie: cookie } } : {},
+    );
+    return { resume };
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("404")) {
+      throw new Response("Resume not found", { status: 404 });
+    }
+    if (error instanceof Error && error.message.includes("401")) {
+      const url = new URL(request.url);
+      throw redirect(`/auth?next=${url.pathname}`);
+    }
+    throw error;
+  }
+}
+
+const Resume = ({ loaderData }: Route.ComponentProps) => {
   const { id } = useParams();
-  const { auth, isLoading, fs, kv } = usePuterStore();
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [resumeUrl, setResumeUrl] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<Feedback | null>(null);
-  const [meta, setMeta] = useState<{
-    companyName?: string;
-    jobTitle?: string;
-  } | null>(null);
+  const { data: session } = useSession();
+  const { resume } = loaderData;
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isLoading && !auth.isAuthenticated) {
+    if (!session) {
       navigate(`/auth?next=/resume/${id}`);
     }
-  }, [isLoading]);
+  }, [session, id, navigate]);
 
-  useEffect(() => {
-    const loadResume = async () => {
-      try {
-        const resume = await kv.get(`resume:${id}`);
-        if (!resume) return;
-
-        let data: Resume;
-        try {
-          data = JSON.parse(resume) as Resume;
-        } catch (parseError) {
-          console.error("Failed to parse resume data:", parseError);
-          return;
-        }
-
-        if (!data || typeof data !== "object") {
-          console.error("Invalid resume data structure");
-          return;
-        }
-
-        setMeta({
-          companyName: data.companyName || undefined,
-          jobTitle: data.jobTitle || undefined,
-        });
-
-        // Parallelize file reads for better performance
-        if (data.resumePath || data.imagePath) {
-          const [resumeResult, imageResult] = await Promise.allSettled([
-            data.resumePath ? fs.read(data.resumePath) : Promise.resolve(null),
-            data.imagePath ? fs.read(data.imagePath) : Promise.resolve(null),
-          ]);
-
-          if (resumeResult.status === "fulfilled" && resumeResult.value) {
-            const pdfBlob = new Blob([resumeResult.value], {
-              type: "application/pdf",
-            });
-            const resumeObjectUrl = URL.createObjectURL(pdfBlob);
-            setResumeUrl(resumeObjectUrl);
-          } else if (resumeResult.status === "rejected") {
-            console.error("Failed to load resume PDF:", resumeResult.reason);
-          }
-
-          if (imageResult.status === "fulfilled" && imageResult.value) {
-            const imageObjectUrl = URL.createObjectURL(imageResult.value);
-            setImageUrl(imageObjectUrl);
-          } else if (imageResult.status === "rejected") {
-            console.error("Failed to load resume image:", imageResult.reason);
-          }
-        }
-
-        if (data.feedback) {
-          setFeedback(data.feedback as Feedback);
-        }
-      } catch (error) {
-        console.error("Error loading resume:", error);
-      }
-    };
-
-    loadResume();
-  }, [id]);
-
-  // Cleanup URLs on unmount
-  useEffect(() => {
-    return () => {
-      if (imageUrl) {
-        try {
-          URL.revokeObjectURL(imageUrl);
-        } catch (e) {
-          // Ignore errors from already-revoked URLs
-        }
-      }
-      if (resumeUrl) {
-        try {
-          URL.revokeObjectURL(resumeUrl);
-        } catch (e) {
-          // Ignore errors from already-revoked URLs
-        }
-      }
-    };
-  }, [imageUrl, resumeUrl]);
+  const feedback = resume.feedback as Feedback | null;
+  const meta = {
+    companyName: resume.company_name ?? resume.companyName,
+    jobTitle: resume.job_title ?? resume.jobTitle,
+  };
+  const textPreview = resume.text_content ?? "";
 
   return (
     <main className="relative overflow-hidden">
@@ -152,35 +97,19 @@ const Resume = () => {
             <div className="surface-card surface-card--tight preview-rail__card">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold uppercase tracking-[0.3em] text-indigo-500">
-                  Live preview
+                  Resume text
                 </p>
-                {resumeUrl && (
-                  <a
-                    href={resumeUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs font-semibold uppercase tracking-[0.28em] text-indigo-600 hover:text-indigo-700"
-                  >
-                    Open PDF
-                  </a>
-                )}
               </div>
               <div className="preview-rail__frame gradient-border overflow-hidden">
-                {imageUrl ? (
-                  <img
-                    src={imageUrl}
-                    className="h-full w-full object-contain"
-                    alt={`Resume preview for ${meta?.companyName || "this submission"}`}
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center bg-slate-100 text-sm text-slate-500">
-                    Preview loading...
-                  </div>
-                )}
+                <div className="p-6 max-h-[600px] overflow-y-auto">
+                  <pre className="whitespace-pre-wrap text-sm text-slate-700 font-mono leading-relaxed">
+                    {textPreview}
+                  </pre>
+                </div>
               </div>
               <p className="text-xs text-slate-500">
-                The preview reflects the PDF uploaded to Puter. Download
-                directly to review formatting before sending to recruiters.
+                Extracted text from your uploaded PDF. Use this to verify the
+                content was parsed correctly.
               </p>
             </div>
           </aside>

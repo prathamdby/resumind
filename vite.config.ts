@@ -8,4 +8,12 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ["pdfjs-dist"],
   },
+  define: {
+    "process.env.BETTER_AUTH_URL": JSON.stringify(
+      process.env.BETTER_AUTH_URL || "http://localhost:3000",
+    ),
+    "process.env.API_URL": JSON.stringify(
+      process.env.API_URL || "http://localhost:8000",
+    ),
+  },
 });

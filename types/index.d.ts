@@ -7,12 +7,18 @@ interface Job {
 
 interface Resume {
   id: string;
+  user_id: string;
+  company_name?: string;
+  job_title?: string;
+  job_description?: string;
+  text_content: string;
+  feedback: Feedback | null;
+  status: "pending" | "processing" | "completed" | "failed";
+  created_at: string;
+  updated_at: string;
   companyName?: string;
   jobTitle?: string;
   jobDescription?: string;
-  imagePath: string;
-  resumePath: string;
-  feedback: Feedback;
 }
 
 interface LineImprovement {

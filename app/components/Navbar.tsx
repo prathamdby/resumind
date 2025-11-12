@@ -1,7 +1,7 @@
-﻿import { Link, useLocation } from "react-router";
+import { Link, useLocation } from "react-router";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "~/lib/utils";
-import { usePuterStore } from "~/lib/puter";
+import { useSession, signOut } from "~/lib/auth";
 
 const Navbar = () => {
   const location = useLocation();
@@ -9,7 +9,13 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const { auth } = usePuterStore();
+  const { data: session } = useSession();
+  const userInitial =
+    (session as any)?.user?.name?.charAt(0)?.toUpperCase() ??
+    (session as any)?.user?.email?.charAt(0)?.toUpperCase() ??
+    "U";
+  const displayName =
+    (session as any)?.user?.name ?? (session as any)?.user?.email ?? "Account";
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -29,9 +35,8 @@ const Navbar = () => {
   }, [isMenuOpen]);
 
   const handleLogout = async () => {
-    await auth.signOut();
+    await signOut();
     setIsMenuOpen(false);
-    window.location.reload();
   };
 
   return (
@@ -69,7 +74,7 @@ const Navbar = () => {
             Analyze Resume
           </Link>
 
-          {auth.isAuthenticated && auth.user && (
+          {session && (
             <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -77,7 +82,7 @@ const Navbar = () => {
                 aria-label="User menu"
                 aria-expanded={isMenuOpen}
               >
-                {auth.user.username.charAt(0).toUpperCase()}
+                {userInitial}
               </button>
 
               {isMenuOpen && (
@@ -88,7 +93,7 @@ const Navbar = () => {
                         Signed in as
                       </p>
                       <p className="mt-1 text-sm font-semibold text-slate-900 truncate">
-                        {auth.user.username}
+                        {displayName}
                       </p>
                     </div>
                     <div className="p-2">
@@ -128,7 +133,7 @@ const Navbar = () => {
             Analyze
           </Link>
 
-          {auth.isAuthenticated && auth.user && (
+          {session && (
             <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -136,7 +141,7 @@ const Navbar = () => {
                 aria-label="User menu"
                 aria-expanded={isMenuOpen}
               >
-                {auth.user.username.charAt(0).toUpperCase()}
+                {userInitial}
               </button>
 
               {isMenuOpen && (
@@ -147,7 +152,7 @@ const Navbar = () => {
                         Signed in as
                       </p>
                       <p className="mt-1 text-sm font-semibold text-slate-900 truncate">
-                        {auth.user.username}
+                        {displayName}
                       </p>
                     </div>
                     <div className="p-2">

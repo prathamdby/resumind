@@ -1,7 +1,7 @@
-﻿import { useEffect } from "react";
+import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
 import Navbar from "~/components/Navbar";
-import { usePuterStore } from "~/lib/puter";
+import { useSession, signIn, signOut } from "~/lib/auth";
 
 export const meta = () => [
   { title: "Resumind | Auth" },
@@ -9,14 +9,16 @@ export const meta = () => [
 ];
 
 const Auth = () => {
-  const { isLoading, auth } = usePuterStore();
+  const { data: session, isPending } = useSession();
   const location = useLocation();
-  const next = location.search.split("next=")[1];
+  const next = new URLSearchParams(location.search).get("next");
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (auth.isAuthenticated && next) navigate(next);
-  }, [auth.isAuthenticated, next]);
+    if (session && next) {
+      navigate(next);
+    }
+  }, [session, next, navigate]);
 
   return (
     <main className="relative overflow-hidden">
@@ -28,8 +30,8 @@ const Auth = () => {
             Sign in to continue your career journey
           </h1>
           <p className="subheadline">
-            Connect your Puter account to save resume versions, store analyses,
-            and pick up where you left off.
+            Connect your account to save resume versions, store analyses, and
+            pick up where you left off.
           </p>
 
           <div className="surface-card surface-card--tight space-y-6">
@@ -37,34 +39,30 @@ const Auth = () => {
               className="text-sm font-semibold text-indigo-600"
               aria-live="polite"
             >
-              {isLoading
+              {isPending
                 ? "Checking your session..."
-                : auth.isAuthenticated
+                : session
                   ? "You are signed in."
                   : "You are signed out."}
             </p>
             <div className="flex flex-col gap-4">
-              {isLoading ? (
+              {isPending ? (
                 <button className="primary-button" disabled>
                   Preparing sign-in
                 </button>
-              ) : auth.isAuthenticated ? (
+              ) : session ? (
                 <button
                   className="primary-button primary-button--ghost"
-                  onClick={auth.signOut}
+                  onClick={() => signOut()}
                 >
-                  Sign out of Puter
+                  Sign out
                 </button>
               ) : (
-                <button className="primary-button" onClick={auth.signIn}>
-                  Sign in with Puter
+                <button className="primary-button" onClick={signIn}>
+                  Sign in
                 </button>
               )}
             </div>
-            <p className="text-xs text-slate-500">
-              Need to switch accounts? Sign out first, then sign in with your
-              preferred Puter login.
-            </p>
           </div>
         </div>
       </section>

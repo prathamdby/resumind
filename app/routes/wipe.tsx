@@ -1,155 +1,92 @@
-﻿import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useState } from "react";
+import { useActionData, useNavigation } from "react-router";
+import type { Route } from "./+types/wipe";
 import Navbar from "~/components/Navbar";
-import { usePuterStore } from "~/lib/puter";
+import { resumeApi } from "~/lib/services/resume-api";
+import { redirect } from "react-router";
 
-const WipeApp = () => {
-  const { auth, isLoading, error, clearError, fs, kv } = usePuterStore();
-  const navigate = useNavigate();
-  const [files, setFiles] = useState<FSItem[]>([]);
-  const [isClearing, setIsClearing] = useState(false);
+export const meta = () => [
+  { title: "Resumind | Wipe data" },
+  { name: "description", content: "Delete all stored resumes and analyses" },
+];
 
-  const loadFiles = async () => {
-    const items = (await fs.readDir("./")) as FSItem[];
-    setFiles(items);
-  };
+export async function action({ request }: Route.ActionArgs) {
+  const formData = await request.formData();
+  const confirm = formData.get("confirm");
 
-  useEffect(() => {
-    loadFiles();
-  }, []);
+  if (confirm !== "DELETE_ALL") {
+    return { error: "Confirmation text does not match" };
+  }
 
-  useEffect(() => {
-    if (!isLoading && !auth.isAuthenticated) {
-      navigate("/auth?next=/wipe");
-    }
-  }, [isLoading]);
-
-  const handleDelete = async () => {
-    if (files.length === 0) return;
-    setIsClearing(true);
+  try {
+    const cookie = request.headers.get("cookie");
+    const init = cookie ? { headers: { Cookie: cookie } } : {};
+    const resumes = await resumeApi.list(init);
     await Promise.all(
-      files.map(async (file) => {
-        await fs.delete(file.path);
-      }),
+      resumes.map((resume) => resumeApi.delete(resume.id, init)),
     );
-    await kv.flush();
-    await loadFiles();
-    setIsClearing(false);
-  };
-
-  if (error) {
-    return (
-      <main className="relative overflow-hidden">
-        <Navbar />
-        <section className="page-shell">
-          <div className="surface-card surface-card--tight space-y-4">
-            <h1 className="text-2xl font-semibold text-red-600">
-              We ran into an issue
-            </h1>
-            <p className="text-sm text-slate-600">{String(error)}</p>
-            <button
-              className="primary-button primary-button--ghost"
-              onClick={clearError}
-            >
-              Try again
-            </button>
-          </div>
-        </section>
-      </main>
-    );
+    return redirect("/?wiped=true");
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : "Failed to wipe data",
+    };
   }
+}
 
-  if (isLoading) {
-    return (
-      <main className="relative overflow-hidden">
-        <Navbar />
-        <section className="page-shell">
-          <div className="surface-card surface-card--tight text-sm text-slate-600">
-            Loading workspace data...
-          </div>
-        </section>
-      </main>
-    );
-  }
+const Wipe = ({ actionData }: Route.ComponentProps) => {
+  const navigation = useNavigation();
+  const isProcessing = navigation.state === "submitting";
+  const [confirmText, setConfirmText] = useState("");
 
   return (
     <main className="relative overflow-hidden">
       <Navbar />
-      <section className="page-shell gap-12">
-        <header className="flex flex-col gap-3">
-          <span className="section-eyebrow w-fit">Maintenance</span>
-          <h1 className="text-4xl font-semibold text-slate-900 sm:text-5xl">
-            Manage your stored files
-          </h1>
-          <p className="text-base text-slate-600">
-            Remove generated resumes, previews, or cached data from your Puter
-            workspace with a single action.
-          </p>
-        </header>
-
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
-          <aside className="surface-card surface-card--tight space-y-4">
-            <h2 className="text-base font-semibold text-slate-900">
-              Account overview
-            </h2>
-            <dl className="space-y-2 text-sm text-slate-600">
-              <div className="flex items-center justify-between">
-                <dt className="font-medium text-slate-700">User</dt>
-                <dd>{auth.user?.username || "Unknown"}</dd>
-              </div>
-              <div className="flex items-center justify-between">
-                <dt className="font-medium text-slate-700">Files detected</dt>
-                <dd>{files.length}</dd>
-              </div>
-            </dl>
-            <button
-              className="primary-button"
-              onClick={handleDelete}
-              disabled={files.length === 0 || isClearing}
-            >
-              {isClearing ? "Clearing..." : "Wipe stored data"}
-            </button>
-            <p className="text-xs text-slate-500">
-              The wipe removes generated previews and feedback stored in Puter.
-              Your resume analyses will need to be re-run afterward.
+      <section className="page-shell">
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-10">
+          <header className="flex flex-col gap-3 text-center">
+            <span className="section-eyebrow mx-auto">Danger zone</span>
+            <h1 className="headline text-4xl">Wipe workspace data</h1>
+            <p className="subheadline">
+              This will delete all stored resumes and their analyses from our
+              servers.
             </p>
-          </aside>
+          </header>
 
-          <section className="surface-card surface-card--tight space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-base font-semibold text-slate-900">
-                Workspace files
-              </h2>
-              <span className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">
-                {files.length} items
-              </span>
-            </div>
-            {files.length === 0 ? (
-              <p className="text-sm text-slate-600">
-                No stored files found. You are all clear!
+          <form
+            method="post"
+            className="surface-card surface-card--tight space-y-6"
+          >
+            <p className="text-sm text-slate-600">
+              Type <span className="font-semibold">DELETE_ALL</span> to confirm.
+              This action cannot be undone.
+            </p>
+            <input
+              type="text"
+              name="confirm"
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value)}
+              placeholder="DELETE_ALL"
+              className="form-input"
+              required
+              disabled={isProcessing}
+            />
+            {actionData?.error && (
+              <p className="text-sm font-medium text-red-600">
+                {actionData.error}
               </p>
-            ) : (
-              <ul className="divide-y divide-slate-100 text-sm text-slate-600">
-                {files.map((file) => (
-                  <li
-                    key={file.id}
-                    className="flex items-center justify-between py-2"
-                  >
-                    <span className="font-medium text-slate-700">
-                      {file.name}
-                    </span>
-                    <span className="text-xs uppercase tracking-[0.28em] text-slate-400">
-                      {file.type}
-                    </span>
-                  </li>
-                ))}
-              </ul>
             )}
-          </section>
+            <button
+              type="submit"
+              disabled={isProcessing}
+              className="primary-button w-full bg-red-600 text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isProcessing ? "Wiping..." : "Delete everything"}
+            </button>
+          </form>
         </div>
       </section>
     </main>
   );
 };
 
-export default WipeApp;
+export default Wipe;
