@@ -1,3 +1,12 @@
+import type { Session, User } from "better-auth/types";
+
+declare global {
+  interface BetterAuthSession extends Session {}
+  interface BetterAuthUser extends User {}
+}
+
+export type { Session, User };
+
 interface Job {
   title: string;
   description: string;

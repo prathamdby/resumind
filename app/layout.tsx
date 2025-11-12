@@ -13,12 +13,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body>
-        <div className="fixed top-0 left-0 right-0 z-50 bg-yellow-50 border-b border-yellow-200 px-4 py-2 text-center text-sm text-yellow-800">
-          ⚠️ Migration in progress - Resume analysis temporarily unavailable.
-          Backend integration coming soon.
-        </div>
         {children}
         <Toaster
           position="bottom-right"

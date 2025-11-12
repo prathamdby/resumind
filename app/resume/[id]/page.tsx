@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import Navbar from "@/app/components/Navbar";
 import Summary from "@/app/components/Summary";
 import Details from "@/app/components/Details";
@@ -11,6 +12,8 @@ import {
   AccordionItem,
 } from "@/app/components/Accordion";
 import { CheckCheck, Lightbulb } from "lucide-react";
+import { getServerSession } from "@/lib/auth-server";
+import type { Feedback } from "@/types";
 
 // Mock feedback for placeholder
 const mockFeedback: Feedback = {
@@ -42,6 +45,11 @@ export default async function ResumePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const session = await getServerSession();
+  if (!session) {
+    redirect("/auth");
+  }
+
   const { id } = await params;
 
   return (

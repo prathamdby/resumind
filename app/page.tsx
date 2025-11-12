@@ -1,7 +1,7 @@
-"use client";
-
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import Navbar from "@/app/components/Navbar";
+import { getServerSession } from "@/lib/auth-server";
 
 const heroInsights = [
   {
@@ -21,7 +21,11 @@ const heroInsights = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const session = await getServerSession();
+  if (!session) {
+    redirect("/auth");
+  }
   return (
     <main className="relative overflow-hidden pt-12">
       <div className="hero-decor" aria-hidden="true" />

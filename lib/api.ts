@@ -136,10 +136,12 @@ const fetchPageContent = async (rawUrl: string): Promise<string> => {
     }
   }
 
-  throw lastError ||
+  throw (
+    lastError ||
     new Error(
       "Unable to fetch the job posting. Please copy and paste the job details manually.",
-    );
+    )
+  );
 };
 
 const extractMessageText = (content: unknown): string => {
