@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import ScoreCircle from "./ScoreCircle";
 import { useEffect, useMemo, useState, useRef } from "react";
 import React from "react";
@@ -14,10 +15,45 @@ const ResumeCard = React.memo(
     resume: Resume;
     onDelete?: (id: string) => void;
   }) => {
-    // Note: imagePath removed - no file storage in placeholder version
     const cardRef = useRef<HTMLDivElement>(null);
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [imageLoadError, setImageLoadError] = useState(false);
+    const [hasNoPreview, setHasNoPreview] = useState(false);
 
     const hasFeedback = typeof feedback === "object" && feedback !== null;
+
+    useEffect(() => {
+      let cancelled = false;
+
+      async function fetchPreview() {
+        try {
+          const response = await fetch(`/api/resumes/${id}/preview`);
+          if (!response.ok) {
+            if (!cancelled) {
+              setHasNoPreview(true);
+            }
+            return;
+          }
+
+          const result = await response.json();
+          if (result.success && result.previewImage && !cancelled) {
+            setPreviewImage(result.previewImage);
+          } else if (!cancelled) {
+            setHasNoPreview(true);
+          }
+        } catch {
+          if (!cancelled) {
+            setHasNoPreview(true);
+          }
+        }
+      }
+
+      fetchPreview();
+
+      return () => {
+        cancelled = true;
+      };
+    }, [id]);
 
     const overallScore = hasFeedback ? feedback.overallScore : undefined;
 
@@ -96,8 +132,23 @@ const ResumeCard = React.memo(
             </div>
           </div>
 
-          <div className="resume-card__preview flex h-[320px] items-center justify-center bg-slate-100 text-sm text-slate-500">
-            Preview will appear after backend integration
+          <div className="resume-card__preview relative h-[320px] overflow-hidden bg-slate-100">
+            {previewImage && !imageLoadError ? (
+              <Image
+                src={previewImage}
+                alt={`Resume preview for ${companyName || jobTitle || "resume"}`}
+                fill
+                className="object-contain"
+                unoptimized
+                onError={() => {
+                  setImageLoadError(true);
+                }}
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center text-sm text-slate-500">
+                {hasNoPreview ? "No preview available" : "Loading preview..."}
+              </div>
+            )}
           </div>
 
           {hasFeedback && (

@@ -5,6 +5,7 @@ import Summary from "@/app/components/Summary";
 import Details from "@/app/components/Details";
 import ATS from "@/app/components/ATS";
 import AnalysisSection from "@/app/components/AnalysisSection";
+import PreviewImage from "@/app/components/PreviewImage";
 import {
   Accordion,
   AccordionContent,
@@ -83,12 +84,10 @@ export default async function ResumePage({
                 </p>
               </div>
               <div className="preview-rail__frame gradient-border overflow-hidden">
-                <div className="flex h-full items-center justify-center bg-slate-100 text-sm text-slate-500">
-                  Resume preview unavailable
-                </div>
+                <PreviewImage resumeId={resume.id} />
               </div>
               <p className="text-xs text-slate-500">
-                PDF files are processed server-side and not stored for preview.
+                Preview generated from uploaded PDF
               </p>
             </div>
           </aside>

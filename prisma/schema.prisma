@@ -94,6 +94,7 @@ model Resume {
   jobTitle       String
   jobDescription String   @db.Text
   feedback       Json
+  previewImage   String?  @db.Text
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 

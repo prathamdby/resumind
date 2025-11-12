@@ -13,7 +13,9 @@ import type { Feedback } from "@/types";
 const MAX_MARKDOWN_LENGTH = 15000;
 const PDF_SERVICE_URL = process.env.PDF_SERVICE_URL || "http://localhost:8000";
 
-async function convertPdfToMarkdown(filePath: string): Promise<string> {
+async function convertPdfToMarkdown(
+  filePath: string,
+): Promise<{ markdown: string; previewImage: string | null }> {
   const fs = await import("fs/promises");
   const fileBuffer = await fs.readFile(filePath);
 
@@ -35,7 +37,21 @@ async function convertPdfToMarkdown(filePath: string): Promise<string> {
 
   const result = await response.json();
   const markdown = result.markdown || "";
-  return markdown.slice(0, MAX_MARKDOWN_LENGTH);
+
+  let previewImage: string | null = null;
+  if (result.preview_image && typeof result.preview_image === "string") {
+    if (
+      result.preview_image.startsWith("data:image/") &&
+      result.preview_image.length <= 5_000_000
+    ) {
+      previewImage = result.preview_image;
+    }
+  }
+
+  return {
+    markdown: markdown.slice(0, MAX_MARKDOWN_LENGTH),
+    previewImage,
+  };
 }
 
 async function analyzeWithAI(
@@ -156,7 +172,8 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const markdown = await convertPdfToMarkdown(tempFilePath);
+      const { markdown, previewImage } =
+        await convertPdfToMarkdown(tempFilePath);
       if (markdown.length >= MAX_MARKDOWN_LENGTH) {
         return NextResponse.json(
           {
@@ -189,6 +206,7 @@ export async function POST(request: NextRequest) {
           jobDescription,
           companyName: companyName || null,
           feedback: validation.data,
+          previewImage,
         },
       });
 

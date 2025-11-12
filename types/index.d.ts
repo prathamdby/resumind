@@ -75,4 +75,5 @@ export interface Resume {
   jobTitle?: string;
   jobDescription?: string;
   feedback: Feedback | null;
+  previewImage?: string;
 }
