@@ -6,13 +6,15 @@ import Details from "@/app/components/Details";
 import ATS from "@/app/components/ATS";
 import AnalysisSection from "@/app/components/AnalysisSection";
 import PreviewImage from "@/app/components/PreviewImage";
+import LineByLineImprovements from "@/app/components/LineByLineImprovements";
+import ColdOutreach from "@/app/components/ColdOutreach";
 import {
   Accordion,
   AccordionContent,
   AccordionHeader,
   AccordionItem,
 } from "@/app/components/Accordion";
-import { CheckCheck, Lightbulb } from "lucide-react";
+import { CheckCheck, Lightbulb, Pencil, MessageSquare } from "lucide-react";
 import { getServerSession } from "@/lib/auth-server";
 import { prisma } from "@/lib/prisma";
 import type { Feedback } from "@/types";
@@ -100,11 +102,39 @@ export default async function ResumePage({
 
               <Accordion
                 className="space-y-5"
-                defaultOpen={["ats", "detailed-coaching"]}
+                defaultOpen={["cold-outreach", "line-improvements"]}
                 allowMultiple
                 persistKey={`resume-${resume.id}`}
                 showControls
               >
+                {feedback.coldOutreachMessage && (
+                  <AnalysisSection
+                    id="cold-outreach"
+                    icon={{ Icon: MessageSquare }}
+                    title="Cold Outreach Message"
+                    eyebrow="LinkedIn DM template"
+                    description="A personalized message based on your resume. Customize before sending."
+                  >
+                    <ColdOutreach message={feedback.coldOutreachMessage} />
+                  </AnalysisSection>
+                )}
+
+                <AnalysisSection
+                  id="line-improvements"
+                  icon={{ Icon: Pencil }}
+                  title="Line-by-Line Improvements"
+                  eyebrow="Specific rewrites"
+                  description="Ready-to-use replacements for your resume. Copy and apply these suggestions to boost your score."
+                  badge={{
+                    label: "Tips",
+                    value: feedback.lineImprovements?.length || 0,
+                  }}
+                >
+                  <LineByLineImprovements
+                    improvements={feedback.lineImprovements || []}
+                  />
+                </AnalysisSection>
+
                 <AnalysisSection
                   id="ats"
                   icon={{ Icon: CheckCheck }}

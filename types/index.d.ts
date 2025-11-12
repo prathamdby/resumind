@@ -55,7 +55,7 @@ export interface Feedback {
       explanation: string;
     }[];
   };
-  lineImprovements?: LineImprovement[];
+  lineImprovements: LineImprovement[];
   coldOutreachMessage?: string;
 }
 

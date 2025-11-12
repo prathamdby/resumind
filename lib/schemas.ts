@@ -59,6 +59,6 @@ export const FeedbackSchema = z.object({
     score: z.number().min(0).max(100),
     tips: z.array(DetailedTipSchema).min(1),
   }),
-  lineImprovements: z.array(LineImprovementSchema).optional(),
-  coldOutreachMessage: z.string().optional(),
+  lineImprovements: z.array(LineImprovementSchema).min(8).max(15),
+  coldOutreachMessage: z.string().min(50).max(500).optional(),
 });
