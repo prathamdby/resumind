@@ -17,7 +17,7 @@ An intelligent resume analysis platform that provides personalized feedback to h
 - ✅ Protected routes (all routes except `/auth` require authentication)
 - ✅ UI shell with navigation
 - ✅ Form validation
-- ✅ Job import from URLs (via Jina.ai)
+- ✅ Job import from URLs (via Jina.ai + Cerebras AI)
 - ✅ Toast notifications
 - ✅ Responsive design
 
@@ -75,6 +75,12 @@ NEXT_PUBLIC_BETTER_AUTH_URL="http://localhost:3000"
 # Google OAuth Credentials
 GOOGLE_CLIENT_ID="<your-google-oauth-client-id>"
 GOOGLE_CLIENT_SECRET="<your-google-oauth-client-secret>"
+
+# Cerebras AI Configuration
+CEREBRAS_API_KEY="<your-cerebras-api-key>"
+
+# Rate Limiting (optional)
+DISABLE_RATE_LIMITING="false"  # Set to "true" in development if needed
 ```
 
 **Important Notes:**
@@ -95,9 +101,11 @@ GOOGLE_CLIENT_SECRET="<your-google-oauth-client-secret>"
 # Generate Prisma Client
 bunx prisma generate
 
-# Run migrations to create auth tables
+# Run migrations to create auth tables and rate limiting
 bunx prisma migrate dev --name init_better_auth
 ```
+
+**Note:** The job import feature uses rate limiting (5 requests per minute per user) to prevent abuse. Rate limits are stored in the database and persist across serverless invocations.
 
 5. Start the development server:
 

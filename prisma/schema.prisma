@@ -73,3 +73,15 @@ model Verification {
   @@unique([identifier, value])
   @@index([expiresAt])
 }
+
+model RateLimit {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  count       Int
+  resetAt     DateTime
+  lastRequest Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([resetAt])
+}

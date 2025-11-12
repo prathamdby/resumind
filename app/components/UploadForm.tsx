@@ -110,7 +110,12 @@ export default function UploadForm() {
       console.error("Import error:", error);
       const errorMessage =
         error instanceof Error
-          ? error.message
+          ? error.message.includes("Too many requests") ||
+            error.message.includes("rate limit")
+            ? "Too many requests. Please wait a moment and try again."
+            : error.message.includes("Unauthorized")
+              ? "Please sign in to import job details."
+              : error.message
           : "We couldn't import the job details. Please paste them manually.";
 
       toast.error("Import failed", {
