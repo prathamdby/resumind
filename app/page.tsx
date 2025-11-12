@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import Navbar from "@/app/components/Navbar";
 import ResumeCard from "@/app/components/ResumeCard";
+import WipeDataButton from "@/app/components/WipeDataButton";
 import { getServerSession } from "@/lib/auth-server";
 import { prisma } from "@/lib/prisma";
 import type { Feedback } from "@/types";
@@ -170,23 +171,34 @@ export default async function Home() {
               </Link>
             </div>
           ) : (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {resumes.map((resume) => {
-                const feedback = resume.feedback as unknown as Feedback;
-                return (
-                  <ResumeCard
-                    key={resume.id}
-                    resume={{
-                      id: resume.id,
-                      companyName: resume.companyName || undefined,
-                      jobTitle: resume.jobTitle,
-                      jobDescription: "",
-                      feedback,
-                    }}
-                  />
-                );
-              })}
-            </div>
+            <>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {resumes.map((resume) => {
+                  const feedback = resume.feedback as unknown as Feedback;
+                  return (
+                    <ResumeCard
+                      key={resume.id}
+                      resume={{
+                        id: resume.id,
+                        companyName: resume.companyName || undefined,
+                        jobTitle: resume.jobTitle,
+                        jobDescription: "",
+                        feedback,
+                      }}
+                    />
+                  );
+                })}
+              </div>
+              <div className="mt-16 flex justify-center border-t border-slate-200/60 pt-12">
+                <WipeDataButton
+                  resumes={resumes.map((r) => ({
+                    id: r.id,
+                    jobTitle: r.jobTitle,
+                    companyName: r.companyName,
+                  }))}
+                />
+              </div>
+            </>
           )}
         </section>
       </section>

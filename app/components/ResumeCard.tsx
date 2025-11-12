@@ -2,23 +2,24 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { X } from "lucide-react";
 import ScoreCircle from "./ScoreCircle";
+import DeleteConfirmModal from "./DeleteConfirmModal";
 import { useEffect, useMemo, useState, useRef } from "react";
 import React from "react";
 import type { Resume } from "@/types";
 
 const ResumeCard = React.memo(
-  ({
-    resume: { id, companyName, jobTitle, feedback },
-    onDelete,
-  }: {
-    resume: Resume;
-    onDelete?: (id: string) => void;
-  }) => {
+  ({ resume: { id, companyName, jobTitle, feedback } }: { resume: Resume }) => {
     const cardRef = useRef<HTMLDivElement>(null);
+    const router = useRouter();
     const [previewImage, setPreviewImage] = useState<string | null>(null);
     const [imageLoadError, setImageLoadError] = useState(false);
     const [hasNoPreview, setHasNoPreview] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const hasFeedback = typeof feedback === "object" && feedback !== null;
 
@@ -78,32 +79,18 @@ const ResumeCard = React.memo(
 
     return (
       <div ref={cardRef} className="relative">
-        {onDelete && (
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onDelete(id);
-            }}
-            className="absolute -right-2 -top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-red-200/70 bg-white/95 text-red-600 shadow-sm backdrop-blur transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-700 hover:shadow-md focus-visible:ring-2 focus-visible:ring-red-200/70 focus-visible:ring-offset-2"
-            aria-label={`Delete ${companyName || "resume"}`}
-          >
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        )}
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setShowDeleteModal(true);
+          }}
+          disabled={isDeleting}
+          className="absolute -right-2 -top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-red-200/70 bg-white/95 text-red-600 shadow-sm backdrop-blur transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-700 hover:shadow-md focus-visible:ring-2 focus-visible:ring-red-200/70 focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed"
+          aria-label={`Delete ${companyName || "resume"}`}
+        >
+          <X className="h-4 w-4" />
+        </button>
         <Link
           href={`/resume/${id}`}
           className="group resume-card animate-in fade-in duration-700"
@@ -191,6 +178,35 @@ const ResumeCard = React.memo(
             </svg>
           </span>
         </Link>
+        <DeleteConfirmModal
+          isOpen={showDeleteModal}
+          onConfirm={async () => {
+            setIsDeleting(true);
+            try {
+              const response = await fetch(`/api/resumes/${id}`, {
+                method: "DELETE",
+              });
+              const result = await response.json();
+
+              if (!response.ok || !result.success) {
+                throw new Error(result.error || "Failed to delete");
+              }
+
+              toast.success("Resume deleted");
+              router.refresh();
+            } catch (error) {
+              toast.error("Failed to delete resume", {
+                description:
+                  error instanceof Error ? error.message : "Please try again",
+              });
+            } finally {
+              setIsDeleting(false);
+              setShowDeleteModal(false);
+            }
+          }}
+          onCancel={() => setShowDeleteModal(false)}
+          title={companyName || jobTitle || "Untitled resume"}
+        />
       </div>
     );
   },
@@ -201,8 +217,7 @@ const ResumeCard = React.memo(
       prevProps.resume.companyName === nextProps.resume.companyName &&
       prevProps.resume.jobTitle === nextProps.resume.jobTitle &&
       prevProps.resume.feedback?.overallScore ===
-        nextProps.resume.feedback?.overallScore &&
-      prevProps.onDelete === nextProps.onDelete
+        nextProps.resume.feedback?.overallScore
     );
   },
 );
