@@ -4,12 +4,14 @@ export async function analyzeResume(
   file: File,
   jobTitle: string,
   jobDescription: string,
+  reasoningLevel: "low" | "medium" | "high",
   companyName?: string,
 ): Promise<{ resumeId: string; feedback: Feedback }> {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("jobTitle", jobTitle);
   formData.append("jobDescription", jobDescription);
+  formData.append("reasoningLevel", reasoningLevel);
   if (companyName) formData.append("companyName", companyName);
 
   const response = await fetch("/api/analyze", {

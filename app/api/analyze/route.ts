@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth-server";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { cerebras, AI_CONFIG } from "@/lib/ai";
+import { cerebras, getAIConfig } from "@/lib/ai";
 import { FeedbackSchema } from "@/lib/schemas";
 import { getAISystemPrompt, prepareInstructions } from "@/constants";
 import { prisma } from "@/lib/prisma";
@@ -9,6 +9,7 @@ import { writeFile, unlink } from "fs/promises";
 import { join } from "path";
 import { tmpdir } from "os";
 import type { Feedback } from "@/types";
+import type { ReasoningLevel } from "@/app/components/ReasoningToggle";
 
 const MAX_MARKDOWN_LENGTH = 15000;
 const PDF_SERVICE_URL = process.env.PDF_SERVICE_URL || "http://localhost:8000";
@@ -58,6 +59,7 @@ async function analyzeWithAI(
   markdown: string,
   jobTitle: string,
   jobDescription: string,
+  reasoningLevel: ReasoningLevel,
   companyName?: string,
 ): Promise<Feedback> {
   const systemPrompt = getAISystemPrompt();
@@ -70,7 +72,7 @@ async function analyzeWithAI(
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
     ],
-    ...AI_CONFIG,
+    ...getAIConfig(reasoningLevel),
   });
 
   const timeoutPromise = new Promise<never>((_, reject) =>
@@ -127,6 +129,8 @@ export async function POST(request: NextRequest) {
     const jobTitle = formData.get("jobTitle") as string | null;
     const jobDescription = formData.get("jobDescription") as string | null;
     const companyName = formData.get("companyName") as string | null;
+    const reasoningLevel =
+      (formData.get("reasoningLevel") as ReasoningLevel) || "low";
 
     if (!file || !jobTitle || !jobDescription) {
       return NextResponse.json(
@@ -188,6 +192,7 @@ export async function POST(request: NextRequest) {
         markdown,
         jobTitle,
         jobDescription,
+        reasoningLevel,
         companyName || undefined,
       );
 

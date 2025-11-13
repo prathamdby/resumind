@@ -378,10 +378,3 @@
     opacity: 1;
   }
 }
-
-/* Hide Puter splash screen dialog */
-.puter-splash,
-[data-puter-splash],
-.puter-auth-splash {
-  display: none !important;
-}

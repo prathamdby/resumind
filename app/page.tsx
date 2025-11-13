@@ -109,8 +109,8 @@ export default async function Home() {
                   Visual resume preview
                 </p>
                 <p className="mt-1 text-slate-600">
-                  Compare versions side-by-side and link directly to the source
-                  PDF stored in Puter.
+                  Compare versions side-by-side and view your uploaded resume
+                  preview.
                 </p>
               </div>
               <div className="rounded-2xl border border-slate-200/60 bg-white/80 px-4 py-3">

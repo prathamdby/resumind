@@ -4,6 +4,9 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import FileUploader from "@/app/components/FileUploader";
 import ImportFromSiteModal from "@/app/components/ImportFromSiteModal";
+import ReasoningToggle, {
+  type ReasoningLevel,
+} from "@/app/components/ReasoningToggle";
 import { cn } from "@/app/lib/utils";
 import { toast } from "sonner";
 import { Globe } from "lucide-react";
@@ -36,6 +39,7 @@ export default function UploadForm() {
   const [companyName, setCompanyName] = useState("");
   const [jobTitle, setJobTitle] = useState("");
   const [jobDescription, setJobDescription] = useState("");
+  const [reasoningLevel, setReasoningLevel] = useState<ReasoningLevel>("low");
   const [isImporting, setIsImporting] = useState(false);
   const [touched, setTouched] = useState({
     jobTitle: false,
@@ -182,6 +186,7 @@ export default function UploadForm() {
         file,
         jobTitle.trim(),
         jobDescription.trim(),
+        reasoningLevel,
         companyName.trim() || undefined,
       );
 
@@ -199,9 +204,14 @@ export default function UploadForm() {
           description: "Please wait a moment and try again.",
         });
       } else if (errorMessage.includes("timeout")) {
+        const hint =
+          reasoningLevel === "high"
+            ? "Try Medium or Low for faster results."
+            : reasoningLevel === "medium"
+              ? "Try Low for faster results."
+              : "The PDF may be too complex. Please try a simpler format.";
         toast.error("Request timed out", {
-          description:
-            "The PDF may be too complex. Please try a simpler format.",
+          description: hint,
         });
       } else if (errorMessage.includes("too detailed")) {
         toast.error("Resume too detailed", {
@@ -376,6 +386,19 @@ export default function UploadForm() {
           </div>
 
           <div className="input-wrapper">
+            <label className="input-label">Analysis depth</label>
+            <ReasoningToggle
+              value={reasoningLevel}
+              onChange={setReasoningLevel}
+              disabled={isProcessing || isImporting}
+            />
+            <p className="text-xs text-slate-500">
+              Choose how thorough the AI review should be. Higher levels take
+              longer and use more compute.
+            </p>
+          </div>
+
+          <div className="input-wrapper">
             <label className="input-label required" htmlFor="resume-upload">
               Resume PDF
             </label>
@@ -389,8 +412,8 @@ export default function UploadForm() {
               inputId="resume-upload"
             />
             <p className="text-xs text-slate-500">
-              We store your file securely in your Puter drive so you can revisit
-              the analysis later.
+              Your file is stored securely so you can revisit the analysis
+              later.
             </p>
           </div>
 
