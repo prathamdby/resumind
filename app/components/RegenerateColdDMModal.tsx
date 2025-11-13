@@ -85,7 +85,7 @@ const RegenerateColdDMModal = ({
               setError("");
             }}
             placeholder="e.g., Make it more concise and emphasize my backend experience..."
-            className="input-field min-h-[120px] resize-y"
+            className="input-field min-h-[120px] resize-y whitespace-pre-wrap"
             disabled={isLoading}
             maxLength={500}
           />
