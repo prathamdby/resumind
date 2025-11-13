@@ -93,6 +93,7 @@ model Resume {
   companyName    String?
   jobTitle       String
   jobDescription String   @db.Text
+  resumeMarkdown String?  @db.Text
   feedback       Json
   previewImage   String?  @db.Text
   createdAt      DateTime @default(now())

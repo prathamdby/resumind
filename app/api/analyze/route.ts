@@ -210,6 +210,7 @@ export async function POST(request: NextRequest) {
           jobTitle,
           jobDescription,
           companyName: companyName || null,
+          resumeMarkdown: markdown,
           feedback: validation.data,
           previewImage,
         },
