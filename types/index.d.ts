@@ -74,6 +74,7 @@ export interface Resume {
   companyName?: string;
   jobTitle?: string;
   jobDescription?: string;
+  resumeMarkdown?: string;
   feedback: Feedback | null;
   previewImage?: string;
 }

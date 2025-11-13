@@ -115,7 +115,10 @@ export default async function ResumePage({
                     eyebrow="LinkedIn DM template"
                     description="A personalized message based on your resume. Customize before sending."
                   >
-                    <ColdOutreach message={feedback.coldOutreachMessage} />
+                    <ColdOutreach
+                      message={feedback.coldOutreachMessage}
+                      resumeId={resume.id}
+                    />
                   </AnalysisSection>
                 )}
 
