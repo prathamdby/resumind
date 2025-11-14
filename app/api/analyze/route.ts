@@ -25,6 +25,7 @@ async function convertPdfToMarkdown(
     type: "application/pdf",
   });
   formData.append("file", file);
+  formData.append("extract_preview", "true");
 
   const response = await fetch(`${PDF_SERVICE_URL}/convert`, {
     method: "POST",
