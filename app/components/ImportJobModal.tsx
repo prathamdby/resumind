@@ -298,7 +298,11 @@ const ImportJobModal = ({
                 disabled={isLoading}
                 className="order-1 w-full primary-button sm:order-2 sm:flex-1"
               >
-                {isLoading ? "Importing..." : hasUrl ? "Import from URL" : "Import from PDF"}
+                {isLoading
+                  ? "Importing..."
+                  : hasUrl
+                    ? "Import from URL"
+                    : "Import from PDF"}
               </button>
             )}
             <button

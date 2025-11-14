@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import type { FileRejection } from "react-dropzone";
 import { toast } from "sonner";
@@ -83,7 +83,15 @@ const FileUploader = ({
     disabled,
   });
 
-  const file = acceptedFiles[0] || null;
+  const [isCleared, setIsCleared] = useState(false);
+
+  useEffect(() => {
+    if (acceptedFiles.length > 0) {
+      setIsCleared(false);
+    }
+  }, [acceptedFiles]);
+
+  const file = isCleared ? null : acceptedFiles[0] || null;
   const rejection = fileRejections[0];
 
   const hasError = Boolean(error);
@@ -153,7 +161,11 @@ const FileUploader = ({
             <button
               type="button"
               className="inline-flex items-center rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-100"
-              onClick={() => onFileSelect?.(null)}
+              onClick={() => {
+                setIsCleared(true);
+                onFileSelect?.(null);
+                onErrorChange?.("");
+              }}
             >
               Remove
             </button>
