@@ -139,6 +139,9 @@ const ImportJobModal = ({
     onCancel();
   };
 
+  const hasUrl = Boolean(url.trim());
+  const hasFile = Boolean(file);
+
   if (!isOpen) return null;
 
   return (
@@ -161,7 +164,11 @@ const ImportJobModal = ({
             </p>
           </div>
 
-          <form onSubmit={handleSubmitUrl} className="space-y-4">
+          <form
+            id="job-url-form"
+            onSubmit={handleSubmitUrl}
+            className="space-y-4"
+          >
             <div className="input-wrapper">
               <label htmlFor="job-url" className="input-label">
                 Job posting URL
@@ -187,16 +194,6 @@ const ImportJobModal = ({
                 </p>
               )}
             </div>
-
-            {url.trim() && (
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full rounded-full bg-gradient-to-r from-indigo-600 to-indigo-700 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:from-indigo-700 hover:to-indigo-800 focus-visible:ring-2 focus-visible:ring-indigo-200 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {isLoading ? "Importing..." : "Import from URL"}
-              </button>
-            )}
           </form>
 
           <div className="relative">
@@ -215,7 +212,7 @@ const ImportJobModal = ({
             <div
               {...getRootProps({
                 className: cn(
-                  "rounded-2xl border-2 border-dashed border-indigo-100 bg-white/95 p-6 transition-colors cursor-pointer",
+                  "rounded-2xl border-2 border-dashed border-indigo-200 bg-indigo-50/20 p-6 transition-colors duration-200 ease-out cursor-pointer hover:border-indigo-300 hover:bg-indigo-50/40",
                   isDragActive && "border-indigo-300 bg-indigo-50/60",
                   fileError && !file && "border-red-300 bg-red-50/30",
                   isLoading && "cursor-not-allowed opacity-60",
@@ -231,7 +228,7 @@ const ImportJobModal = ({
 
               {!file && (
                 <div className="flex flex-col items-center gap-3 text-center">
-                  <div className="rounded-full bg-indigo-50 p-3">
+                  <div className="rounded-full bg-white p-3 shadow-inner">
                     <img
                       src="/icons/info.svg"
                       alt="Upload"
@@ -274,7 +271,7 @@ const ImportJobModal = ({
                   </div>
                   <button
                     type="button"
-                    className="inline-flex items-center rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                    className="inline-flex items-center rounded-full border border-slate-200 bg-white/90 px-3 py-1 text-xs font-semibold text-slate-600 transition-colors duration-200 ease-out hover:bg-slate-50"
                     onClick={() => {
                       setFile(null);
                       setFileError("");
@@ -292,25 +289,27 @@ const ImportJobModal = ({
             )}
           </div>
 
-          {file && (
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+            {(hasUrl || hasFile) && (
+              <button
+                type={hasUrl ? "submit" : "button"}
+                form={hasUrl ? "job-url-form" : undefined}
+                onClick={hasFile ? handleSubmitPdf : undefined}
+                disabled={isLoading}
+                className="order-1 w-full primary-button sm:order-2 sm:flex-1"
+              >
+                {isLoading ? "Importing..." : hasUrl ? "Import from URL" : "Import from PDF"}
+              </button>
+            )}
             <button
               type="button"
-              onClick={handleSubmitPdf}
+              onClick={handleCancel}
               disabled={isLoading}
-              className="w-full rounded-full bg-gradient-to-r from-indigo-600 to-indigo-700 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:from-indigo-700 hover:to-indigo-800 focus-visible:ring-2 focus-visible:ring-indigo-200 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="order-2 w-full rounded-full border border-slate-200 bg-white/90 px-6 py-3 text-base font-medium text-slate-700 transition-transform duration-200 ease-out hover:-translate-y-0.5 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 sm:order-1 sm:flex-1"
             >
-              {isLoading ? "Importing..." : "Import from PDF"}
+              Cancel
             </button>
-          )}
-
-          <button
-            type="button"
-            onClick={handleCancel}
-            disabled={isLoading}
-            className="w-full rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition-all hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-200 disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            Cancel
-          </button>
+          </div>
         </div>
       </div>
     </div>
