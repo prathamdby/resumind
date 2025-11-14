@@ -47,3 +47,25 @@ export async function importJobFromUrl(url: string): Promise<{
 
   return result.data;
 }
+
+export async function importJobFromPdf(file: File): Promise<{
+  companyName: string;
+  jobTitle: string;
+  jobDescription: string;
+}> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch("/api/import-job-pdf", {
+    method: "POST",
+    body: formData,
+  });
+
+  const result = await response.json();
+
+  if (!result.success || !result.data) {
+    throw new Error(result.error || "Failed to import job details from PDF");
+  }
+
+  return result.data;
+}

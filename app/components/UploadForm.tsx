@@ -3,14 +3,14 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import FileUploader from "@/app/components/FileUploader";
-import ImportFromSiteModal from "@/app/components/ImportFromSiteModal";
+import ImportJobModal from "@/app/components/ImportJobModal";
 import ReasoningToggle, {
   type ReasoningLevel,
 } from "@/app/components/ReasoningToggle";
 import { cn } from "@/app/lib/utils";
 import { toast } from "sonner";
 import { Globe } from "lucide-react";
-import { analyzeResume, importJobFromUrl } from "@/lib/api";
+import { analyzeResume, importJobFromUrl, importJobFromPdf } from "@/lib/api";
 
 const checklist = [
   {
@@ -98,7 +98,7 @@ export default function UploadForm() {
     setStatusText("Resume uploaded. Ready when you are.");
   };
 
-  const handleImportFromSite = async (url: string) => {
+  const handleImportFromUrl = async (url: string) => {
     setIsImporting(true);
 
     try {
@@ -123,6 +123,40 @@ export default function UploadForm() {
               ? "Please sign in to import job details."
               : error.message
           : "We couldn't import the job details. Please paste them manually.";
+
+      toast.error("Import failed", {
+        description: errorMessage,
+      });
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const handleImportFromPdf = async (file: File) => {
+    setIsImporting(true);
+
+    try {
+      const extracted = await importJobFromPdf(file);
+      setCompanyName(extracted.companyName);
+      setJobTitle(extracted.jobTitle);
+      setJobDescription(extracted.jobDescription);
+
+      toast.success("Job details imported", {
+        description: "The form has been filled with the extracted information.",
+      });
+
+      setImportModalOpen(false);
+    } catch (error) {
+      console.error("Import error:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message.includes("Too many requests") ||
+            error.message.includes("rate limit")
+            ? "Too many requests. Please wait a moment and try again."
+            : error.message.includes("Unauthorized")
+              ? "Please sign in to import job details."
+              : error.message
+          : "We couldn't import the job details from the PDF. Please paste them manually.";
 
       toast.error("Import failed", {
         description: errorMessage,
@@ -247,7 +281,7 @@ export default function UploadForm() {
               className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-white/80 px-4 py-2 text-sm font-medium text-indigo-600 transition-all hover:bg-indigo-50 hover:text-indigo-700 focus-visible:ring-2 focus-visible:ring-indigo-200 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <Globe className="h-4 w-4" />
-              Import from site
+              Import details
             </button>
           </div>
 
@@ -480,13 +514,14 @@ export default function UploadForm() {
         </aside>
       </div>
 
-      <ImportFromSiteModal
+      <ImportJobModal
         isOpen={importModalOpen}
         onCancel={() => {
           if (isImporting) return;
           setImportModalOpen(false);
         }}
-        onImport={handleImportFromSite}
+        onImportUrl={handleImportFromUrl}
+        onImportPdf={handleImportFromPdf}
       />
     </>
   );
