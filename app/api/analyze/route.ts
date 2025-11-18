@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "@/lib/auth-server";
-import { checkRateLimit } from "@/lib/rate-limit";
-import { cerebras, getAIConfig } from "@/lib/ai";
+import { withAuthAndRateLimit } from "@/lib/api-middleware";
+import { handleAPIError } from "@/lib/api-errors";
+import { makeAIRequest } from "@/lib/ai-helpers";
 import { FeedbackSchema } from "@/lib/schemas";
 import { getAISystemPrompt, prepareInstructions } from "@/constants";
 import { prisma } from "@/lib/prisma";
@@ -67,195 +67,133 @@ async function analyzeWithAI(
     prepareInstructions({ jobTitle, jobDescription, companyName }) +
     `\n\nResume:\n${markdown}`;
 
-  const aiPromise = cerebras.chat.completions.create({
+  return makeAIRequest<Feedback>({
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
     ],
-    ...getAIConfig(reasoningLevel),
+    reasoningLevel,
   });
-
-  const timeoutPromise = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error("AI timeout")), 25000),
-  );
-
-  const completion = await Promise.race([aiPromise, timeoutPromise]);
-  const contentText = (
-    completion as { choices?: Array<{ message?: { content?: string } }> }
-  ).choices?.[0]?.message?.content;
-
-  if (!contentText || typeof contentText !== "string") {
-    throw new Error("No AI response");
-  }
-
-  return JSON.parse(contentText);
 }
 
 export async function POST(request: NextRequest) {
   let tempFilePath: string | null = null;
 
   try {
-    const session = await getServerSession();
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 },
-      );
-    }
-
-    const rateLimitResult = await checkRateLimit(
+    return await withAuthAndRateLimit(
       request,
-      session.user.id,
       "/api/analyze",
+      async ({ userId }) => {
+        const formData = await request.formData();
+        const file = formData.get("file") as File | null;
+        const jobTitle = formData.get("jobTitle") as string | null;
+        const jobDescription = formData.get("jobDescription") as string | null;
+        const companyName = formData.get("companyName") as string | null;
+        const reasoningLevel =
+          (formData.get("reasoningLevel") as ReasoningLevel) || "low";
+
+        if (!file || !jobTitle || !jobDescription) {
+          return NextResponse.json(
+            { success: false, error: "Missing required fields" },
+            { status: 400 },
+          );
+        }
+
+        if (file.type !== "application/pdf") {
+          return NextResponse.json(
+            { success: false, error: "Only PDF files are supported" },
+            { status: 400 },
+          );
+        }
+
+        if (file.size > 20 * 1024 * 1024) {
+          return NextResponse.json(
+            { success: false, error: "File size must be under 20 MB" },
+            { status: 400 },
+          );
+        }
+
+        try {
+          await fetch(`${PDF_SERVICE_URL}/health`, {
+            signal: AbortSignal.timeout(2000),
+          });
+        } catch {
+          return NextResponse.json(
+            {
+              success: false,
+              error: "PDF service unavailable. Please try again later.",
+            },
+            { status: 502 },
+          );
+        }
+
+        tempFilePath = join(tmpdir(), `resume-${userId}-${Date.now()}.pdf`);
+        const buffer = Buffer.from(await file.arrayBuffer());
+
+        try {
+          await writeFile(tempFilePath, buffer);
+
+          const { markdown, previewImage } =
+            await convertPdfToMarkdown(tempFilePath);
+          if (markdown.length >= MAX_MARKDOWN_LENGTH) {
+            return NextResponse.json(
+              {
+                success: false,
+                error: "Resume too detailed. Please use a simpler format.",
+              },
+              { status: 400 },
+            );
+          }
+
+          const feedback = await analyzeWithAI(
+            markdown,
+            jobTitle,
+            jobDescription,
+            reasoningLevel,
+            companyName || undefined,
+          );
+
+          const validation = FeedbackSchema.safeParse(feedback);
+          if (!validation.success) {
+            return NextResponse.json(
+              { success: false, error: "AI returned malformed response" },
+              { status: 500 },
+            );
+          }
+
+          const resume = await prisma.resume.create({
+            data: {
+              userId,
+              jobTitle,
+              jobDescription,
+              companyName: companyName || null,
+              resumeMarkdown: markdown,
+              feedback: validation.data,
+              previewImage,
+            },
+          });
+
+          return NextResponse.json({
+            success: true,
+            resumeId: resume.id,
+            feedback: validation.data,
+          });
+        } finally {
+          if (tempFilePath) {
+            await unlink(tempFilePath).catch(() => {});
+          }
+        }
+      },
     );
-
-    if (!rateLimitResult.allowed) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Too many requests. Please try again later.",
-        },
-        {
-          status: 429,
-          headers: {
-            "Retry-After": String(rateLimitResult.retryAfter || 60),
-          },
-        },
-      );
-    }
-
-    const formData = await request.formData();
-    const file = formData.get("file") as File | null;
-    const jobTitle = formData.get("jobTitle") as string | null;
-    const jobDescription = formData.get("jobDescription") as string | null;
-    const companyName = formData.get("companyName") as string | null;
-    const reasoningLevel =
-      (formData.get("reasoningLevel") as ReasoningLevel) || "low";
-
-    if (!file || !jobTitle || !jobDescription) {
-      return NextResponse.json(
-        { success: false, error: "Missing required fields" },
-        { status: 400 },
-      );
-    }
-
-    if (file.type !== "application/pdf") {
-      return NextResponse.json(
-        { success: false, error: "Only PDF files are supported" },
-        { status: 400 },
-      );
-    }
-
-    if (file.size > 20 * 1024 * 1024) {
-      return NextResponse.json(
-        { success: false, error: "File size must be under 20 MB" },
-        { status: 400 },
-      );
-    }
-
-    try {
-      await fetch(`${PDF_SERVICE_URL}/health`, {
-        signal: AbortSignal.timeout(2000),
-      });
-    } catch {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "PDF service unavailable. Please try again later.",
-        },
-        { status: 502 },
-      );
-    }
-
-    tempFilePath = join(
-      tmpdir(),
-      `resume-${session.user.id}-${Date.now()}.pdf`,
-    );
-    const buffer = Buffer.from(await file.arrayBuffer());
-
-    try {
-      await writeFile(tempFilePath, buffer);
-
-      const { markdown, previewImage } =
-        await convertPdfToMarkdown(tempFilePath);
-      if (markdown.length >= MAX_MARKDOWN_LENGTH) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Resume too detailed. Please use a simpler format.",
-          },
-          { status: 400 },
-        );
-      }
-
-      const feedback = await analyzeWithAI(
-        markdown,
-        jobTitle,
-        jobDescription,
-        reasoningLevel,
-        companyName || undefined,
-      );
-
-      const validation = FeedbackSchema.safeParse(feedback);
-      if (!validation.success) {
-        return NextResponse.json(
-          { success: false, error: "AI returned malformed response" },
-          { status: 500 },
-        );
-      }
-
-      const resume = await prisma.resume.create({
-        data: {
-          userId: session.user.id,
-          jobTitle,
-          jobDescription,
-          companyName: companyName || null,
-          resumeMarkdown: markdown,
-          feedback: validation.data,
-          previewImage,
-        },
-      });
-
-      return NextResponse.json({
-        success: true,
-        resumeId: resume.id,
-        feedback: validation.data,
-      });
-    } finally {
-      if (tempFilePath) {
-        await unlink(tempFilePath).catch(() => {});
-      }
-    }
   } catch (error) {
     if (tempFilePath) {
       await unlink(tempFilePath).catch(() => {});
     }
 
-    if (error instanceof Error) {
-      if (error.message.includes("timeout")) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Request timed out. Please try again.",
-          },
-          { status: 504 },
-        );
-      }
-
-      if (error.message.includes("fetch") || error.message.includes("PDF")) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: "PDF service unavailable. Please try again later.",
-          },
-          { status: 502 },
-        );
-      }
-    }
-
-    return NextResponse.json(
-      { success: false, error: "Failed to analyze resume" },
-      { status: 500 },
-    );
+    return handleAPIError(error, {
+      externalServiceMessage:
+        "PDF service unavailable. Please try again later.",
+      defaultMessage: "Failed to analyze resume",
+    });
   }
 }

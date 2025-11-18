@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "@/lib/auth-server";
-import { checkRateLimit } from "@/lib/rate-limit";
-import { cerebras, getAIConfig } from "@/lib/ai";
+import { withAuthAndRateLimit } from "@/lib/api-middleware";
+import { handleAPIError } from "@/lib/api-errors";
+import { makeAIRequest } from "@/lib/ai-helpers";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
@@ -51,154 +51,105 @@ COLD OUTREACH GUIDELINES:
 
 Apply the user's feedback to improve the message. Return ONLY the regenerated cold DM text, no JSON formatting, no markdown code blocks, no explanatory text.`;
 
-  const aiPromise = cerebras.chat.completions.create({
+  const content = await makeAIRequest<string>({
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
     ],
-    ...getAIConfig("low"),
-    response_format: { type: "text" },
+    reasoningLevel: "low",
+    responseFormat: { type: "text" },
   });
 
-  const timeoutPromise = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error("AI timeout")), 25000),
-  );
-
-  const completion = await Promise.race([aiPromise, timeoutPromise]);
-  const contentText = (
-    completion as { choices?: Array<{ message?: { content?: string } }> }
-  ).choices?.[0]?.message?.content;
-
-  if (!contentText || typeof contentText !== "string") {
-    throw new Error("No AI response");
-  }
-
-  return contentText.trim();
+  return content.trim();
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession();
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 },
-      );
-    }
-
-    const rateLimitResult = await checkRateLimit(
+    return await withAuthAndRateLimit(
       request,
-      session.user.id,
       "/api/regenerate-cold-dm",
-    );
+      async ({ userId }) => {
+        const body = await request.json();
+        const validation = RegenerateColdDMSchema.safeParse(body);
 
-    if (!rateLimitResult.allowed) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Too many requests. Please try again later.",
-        },
-        {
-          status: 429,
-          headers: {
-            "Retry-After": String(rateLimitResult.retryAfter || 60),
+        if (!validation.success) {
+          return NextResponse.json(
+            { success: false, error: "Invalid request data" },
+            { status: 400 },
+          );
+        }
+
+        const { resumeId, userFeedback } = validation.data;
+
+        const resume = await prisma.resume.findUnique({
+          where: { id: resumeId },
+          select: {
+            id: true,
+            userId: true,
+            jobTitle: true,
+            companyName: true,
+            jobDescription: true,
+            resumeMarkdown: true,
+            feedback: true,
           },
-        },
-      );
-    }
+        });
 
-    const body = await request.json();
-    const validation = RegenerateColdDMSchema.safeParse(body);
+        if (!resume || resume.userId !== userId) {
+          return NextResponse.json(
+            { success: false, error: "Resume not found" },
+            { status: 404 },
+          );
+        }
 
-    if (!validation.success) {
-      return NextResponse.json(
-        { success: false, error: "Invalid request data" },
-        { status: 400 },
-      );
-    }
+        if (!resume.resumeMarkdown) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: "Resume markdown not available for regeneration",
+            },
+            { status: 400 },
+          );
+        }
 
-    const { resumeId, userFeedback } = validation.data;
+        const feedback = resume.feedback as unknown as Feedback;
 
-    const resume = await prisma.resume.findUnique({
-      where: { id: resumeId },
-      select: {
-        id: true,
-        userId: true,
-        jobTitle: true,
-        companyName: true,
-        jobDescription: true,
-        resumeMarkdown: true,
-        feedback: true,
-      },
-    });
+        if (!feedback.coldOutreachMessage) {
+          return NextResponse.json(
+            { success: false, error: "No cold DM exists to regenerate" },
+            { status: 400 },
+          );
+        }
 
-    if (!resume || resume.userId !== session.user.id) {
-      return NextResponse.json(
-        { success: false, error: "Resume not found" },
-        { status: 404 },
-      );
-    }
-
-    if (!resume.resumeMarkdown) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Resume markdown not available for regeneration",
-        },
-        { status: 400 },
-      );
-    }
-
-    const feedback = resume.feedback as unknown as Feedback;
-
-    if (!feedback.coldOutreachMessage) {
-      return NextResponse.json(
-        { success: false, error: "No cold DM exists to regenerate" },
-        { status: 400 },
-      );
-    }
-
-    const newColdDM = await regenerateColdDM(
-      resume.resumeMarkdown,
-      resume.jobTitle,
-      resume.jobDescription,
-      feedback.coldOutreachMessage,
-      userFeedback,
-      resume.companyName || undefined,
-    );
-
-    const updatedFeedback: Feedback = {
-      ...feedback,
-      coldOutreachMessage: newColdDM,
-    };
-
-    await prisma.resume.update({
-      where: { id: resumeId },
-      data: {
-        feedback: updatedFeedback as unknown as Prisma.InputJsonValue,
-      },
-    });
-
-    return NextResponse.json({
-      success: true,
-      coldOutreachMessage: newColdDM,
-    });
-  } catch (error) {
-    if (error instanceof Error) {
-      if (error.message.includes("timeout")) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Request timed out. Please try again.",
-          },
-          { status: 504 },
+        const newColdDM = await regenerateColdDM(
+          resume.resumeMarkdown,
+          resume.jobTitle,
+          resume.jobDescription,
+          feedback.coldOutreachMessage,
+          userFeedback,
+          resume.companyName || undefined,
         );
-      }
-    }
 
-    return NextResponse.json(
-      { success: false, error: "Failed to regenerate cold DM" },
-      { status: 500 },
+        const updatedFeedback: Feedback = {
+          ...feedback,
+          coldOutreachMessage: newColdDM,
+        };
+
+        await prisma.resume.update({
+          where: { id: resumeId },
+          data: {
+            feedback: updatedFeedback as unknown as Prisma.InputJsonValue,
+          },
+        });
+
+        return NextResponse.json({
+          success: true,
+          coldOutreachMessage: newColdDM,
+        });
+      },
     );
+  } catch (error) {
+    return handleAPIError(error, {
+      defaultMessage: "Failed to regenerate cold DM",
+    });
   }
 }
