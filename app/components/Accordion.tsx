@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import type { ReactNode } from "react";
 import React, {
@@ -7,6 +7,7 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useRef,
 } from "react";
 import { cn } from "@/app/lib/utils";
 
@@ -63,6 +64,7 @@ export const Accordion: React.FC<AccordionProps> = ({
   };
 
   const [activeItems, setActiveItems] = useState<string[]>(getInitialState);
+  const persistTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load from localStorage after mount (client-only)
   useEffect(() => {
@@ -79,9 +81,17 @@ export const Accordion: React.FC<AccordionProps> = ({
     }
   }, [persistKey]);
 
-  // Persist to localStorage when activeItems change
+  // Persist to localStorage when activeItems change (debounced)
   useEffect(() => {
-    if (persistKey && typeof window !== "undefined") {
+    if (!persistKey || typeof window === "undefined") {
+      return;
+    }
+
+    if (persistTimeoutRef.current) {
+      clearTimeout(persistTimeoutRef.current);
+    }
+
+    persistTimeoutRef.current = setTimeout(() => {
       try {
         localStorage.setItem(
           `accordion-${persistKey}`,
@@ -124,7 +134,13 @@ export const Accordion: React.FC<AccordionProps> = ({
           console.warn("Failed to save accordion state", error);
         }
       }
-    }
+    }, 400);
+
+    return () => {
+      if (persistTimeoutRef.current) {
+        clearTimeout(persistTimeoutRef.current);
+      }
+    };
   }, [activeItems, persistKey]);
 
   // Handle URL hash on mount

@@ -108,31 +108,31 @@ export async function checkRateLimit(
 
     const now = new Date();
     const resetAt = new Date(now.getTime() + config.window * 1000);
+    const timestamp = Math.floor(now.getTime() / 1000);
 
-    const updated = await prisma.$executeRaw`
+    type UpdatedRateLimit = { count: number; resetAt: Date };
+    const updatedRecords = await prisma.$queryRaw<UpdatedRateLimit[]>`
       UPDATE "RateLimit"
       SET count = count + 1,
-          "lastRequest" = ${Math.floor(now.getTime() / 1000)}
+          "lastRequest" = ${timestamp}
       WHERE key = ${key}
         AND count < ${config.max}
         AND "resetAt" > ${now}
+      RETURNING count, "resetAt"
     `;
 
-    if (updated > 0) {
-      const record = await prisma.rateLimit.findUnique({ where: { key } });
+    if (updatedRecords.length > 0) {
+      const updated = updatedRecords[0];
+      rateLimitCache.set(key, {
+        count: updated.count,
+        resetAt: updated.resetAt.getTime(),
+        lastUpdated: Date.now(),
+      });
 
-      if (record) {
-        rateLimitCache.set(key, {
-          count: record.count,
-          resetAt: record.resetAt.getTime(),
-          lastUpdated: Date.now(),
-        });
-
-        const remaining = config.max - record.count;
-        console.log(
-          `[Rate Limit] ${routePath} - ${record.count}/${config.max} requests used. ${remaining} remaining.`,
-        );
-      }
+      const remaining = config.max - updated.count;
+      console.log(
+        `[Rate Limit] ${routePath} - ${updated.count}/${config.max} requests used. ${remaining} remaining.`,
+      );
 
       return { allowed: true };
     }
@@ -145,13 +145,13 @@ export async function checkRateLimit(
         update: {
           count: 1,
           resetAt,
-          lastRequest: Math.floor(now.getTime() / 1000),
+          lastRequest: timestamp,
         },
         create: {
           key,
           count: 1,
           resetAt,
-          lastRequest: Math.floor(now.getTime() / 1000),
+          lastRequest: timestamp,
         },
       });
 

@@ -5,7 +5,7 @@ import { cerebras, getAIConfig } from "@/lib/ai";
 import { FeedbackSchema } from "@/lib/schemas";
 import { getAISystemPrompt, prepareInstructions } from "@/constants";
 import { prisma } from "@/lib/prisma";
-import { writeFile, unlink } from "fs/promises";
+import { writeFile, unlink, readFile } from "fs/promises";
 import { join } from "path";
 import { tmpdir } from "os";
 import type { Feedback } from "@/types";
@@ -17,8 +17,7 @@ const PDF_SERVICE_URL = process.env.PDF_SERVICE_URL || "http://localhost:8000";
 async function convertPdfToMarkdown(
   filePath: string,
 ): Promise<{ markdown: string; previewImage: string | null }> {
-  const fs = await import("fs/promises");
-  const fileBuffer = await fs.readFile(filePath);
+  const fileBuffer = await readFile(filePath);
 
   const formData = new FormData();
   const file = new File([new Uint8Array(fileBuffer)], "resume.pdf", {
@@ -154,6 +153,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    try {
+      await fetch(`${PDF_SERVICE_URL}/health`, {
+        signal: AbortSignal.timeout(2000),
+      });
+    } catch {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "PDF service unavailable. Please try again later.",
+        },
+        { status: 502 },
+      );
+    }
+
     tempFilePath = join(
       tmpdir(),
       `resume-${session.user.id}-${Date.now()}.pdf`,
@@ -162,20 +175,6 @@ export async function POST(request: NextRequest) {
 
     try {
       await writeFile(tempFilePath, buffer);
-
-      try {
-        await fetch(`${PDF_SERVICE_URL}/health`, {
-          signal: AbortSignal.timeout(2000),
-        });
-      } catch {
-        return NextResponse.json(
-          {
-            success: false,
-            error: "PDF service unavailable. Please try again later.",
-          },
-          { status: 502 },
-        );
-      }
 
       const { markdown, previewImage } =
         await convertPdfToMarkdown(tempFilePath);
