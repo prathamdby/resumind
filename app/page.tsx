@@ -39,6 +39,7 @@ export default async function Home() {
       companyName: true,
       createdAt: true,
       feedback: true,
+      previewImage: true,
     },
     orderBy: { createdAt: "desc" },
     take: 50,
@@ -184,6 +185,7 @@ export default async function Home() {
                         jobTitle: resume.jobTitle,
                         jobDescription: "",
                         feedback,
+                        previewImage: resume.previewImage || undefined,
                       }}
                     />
                   );
