@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { writeFile, unlink, readFile } from "fs/promises";
 import { join } from "path";
 import { tmpdir } from "os";
+import { randomUUID } from "crypto";
 import type { Feedback } from "@/types";
 import type { ReasoningLevel } from "@/app/components/ReasoningToggle";
 
@@ -77,13 +78,13 @@ async function analyzeWithAI(
 }
 
 export async function POST(request: NextRequest) {
-  let tempFilePath: string | null = null;
+  return await withAuthAndRateLimit(
+    request,
+    "/api/analyze",
+    async ({ userId }) => {
+      let tempFilePath: string | null = null;
 
-  try {
-    return await withAuthAndRateLimit(
-      request,
-      "/api/analyze",
-      async ({ userId }) => {
+      try {
         const formData = await request.formData();
         const file = formData.get("file") as File | null;
         const jobTitle = formData.get("jobTitle") as string | null;
@@ -127,73 +128,67 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        tempFilePath = join(tmpdir(), `resume-${userId}-${Date.now()}.pdf`);
+        tempFilePath = join(tmpdir(), `resume-${userId}-${randomUUID()}.pdf`);
         const buffer = Buffer.from(await file.arrayBuffer());
 
-        try {
-          await writeFile(tempFilePath, buffer);
+        await writeFile(tempFilePath, buffer);
 
-          const { markdown, previewImage } =
-            await convertPdfToMarkdown(tempFilePath);
-          if (markdown.length >= MAX_MARKDOWN_LENGTH) {
-            return NextResponse.json(
-              {
-                success: false,
-                error: "Resume too detailed. Please use a simpler format.",
-              },
-              { status: 400 },
-            );
-          }
+        const { markdown, previewImage } =
+          await convertPdfToMarkdown(tempFilePath);
+        if (markdown.length >= MAX_MARKDOWN_LENGTH) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: "Resume too detailed. Please use a simpler format.",
+            },
+            { status: 400 },
+          );
+        }
 
-          const feedback = await analyzeWithAI(
-            markdown,
+        const feedback = await analyzeWithAI(
+          markdown,
+          jobTitle,
+          jobDescription,
+          reasoningLevel,
+          companyName || undefined,
+        );
+
+        const validation = FeedbackSchema.safeParse(feedback);
+        if (!validation.success) {
+          return NextResponse.json(
+            { success: false, error: "AI returned malformed response" },
+            { status: 500 },
+          );
+        }
+
+        const resume = await prisma.resume.create({
+          data: {
+            userId,
             jobTitle,
             jobDescription,
-            reasoningLevel,
-            companyName || undefined,
-          );
-
-          const validation = FeedbackSchema.safeParse(feedback);
-          if (!validation.success) {
-            return NextResponse.json(
-              { success: false, error: "AI returned malformed response" },
-              { status: 500 },
-            );
-          }
-
-          const resume = await prisma.resume.create({
-            data: {
-              userId,
-              jobTitle,
-              jobDescription,
-              companyName: companyName || null,
-              resumeMarkdown: markdown,
-              feedback: validation.data,
-              previewImage,
-            },
-          });
-
-          return NextResponse.json({
-            success: true,
-            resumeId: resume.id,
+            companyName: companyName || null,
+            resumeMarkdown: markdown,
             feedback: validation.data,
-          });
-        } finally {
-          if (tempFilePath) {
-            await unlink(tempFilePath).catch(() => {});
-          }
-        }
-      },
-    );
-  } catch (error) {
-    if (tempFilePath) {
-      await unlink(tempFilePath).catch(() => {});
-    }
+            previewImage,
+          },
+        });
 
-    return handleAPIError(error, {
-      externalServiceMessage:
-        "PDF service unavailable. Please try again later.",
-      defaultMessage: "Failed to analyze resume",
-    });
-  }
+        return NextResponse.json({
+          success: true,
+          resumeId: resume.id,
+          feedback: validation.data,
+        });
+      } catch (error) {
+        return handleAPIError(error, {
+          externalServiceMessage:
+            "PDF service unavailable. Please try again later.",
+          defaultMessage: "Failed to analyze resume",
+        });
+      } finally {
+        if (tempFilePath) {
+          await unlink(tempFilePath).catch(() => {});
+        }
+      }
+    },
+  );
 }
