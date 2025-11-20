@@ -12,13 +12,13 @@ Designs can drift toward generic SaaS patterns (Inter, purple gradients, flat ca
 
 ### Typography
 
-Mona Sans is the primary typeface. Use it consistently with clear hierarchy.
+Plus Jakarta Sans is the primary typeface. Use it consistently with clear hierarchy.
 
 **Font Stack:**
 
-- Primary: `"Mona Sans", ui-sans-serif, system-ui, sans-serif`
-- Variable weights: 200-900
-- Load from Google Fonts: `https://fonts.googleapis.com/css2?family=Mona+Sans:ital,wght@0,200..900;1,200..900&display=swap`
+- Primary: `"Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif`
+- Variable weights: 200-800
+- Load from: `next/font/google` (variable font)
 
 **Typography Scale:**
 
@@ -283,7 +283,7 @@ Generous spacing with clear hierarchy.
 
 Before finalizing any design:
 
-- [ ] Typography: Mona Sans with proper weight/size hierarchy
+- [ ] Typography: Plus Jakarta Sans with proper weight/size hierarchy
 - [ ] Color: Indigo/pink gradient palette with CSS variables
 - [ ] Surfaces: Glassmorphic cards with backdrop blur and transparency
 - [ ] Motion: Subtle transitions (200-500ms) with ease-out

@@ -12,6 +12,7 @@ interface FileUploaderProps {
   error?: string;
   disabled?: boolean;
   inputId?: string;
+  className?: string;
 }
 
 const FileUploader = ({
@@ -20,6 +21,7 @@ const FileUploader = ({
   error,
   disabled,
   inputId,
+  className,
 }: FileUploaderProps) => {
   const maxFileSize = 20 * 1024 * 1024;
 
@@ -100,14 +102,14 @@ const FileUploader = ({
 
   return (
     <div
-      className="uploader surface-card surface-card--tight"
+      className={cn("uploader flex flex-col", className)}
       role="group"
       aria-label="Resume upload"
     >
       <div
         {...getRootProps({
           className: cn(
-            "uploader-dropzone",
+            "uploader-dropzone flex-1 min-h-[200px]",
             isDragActive && "border-indigo-300 bg-indigo-50/60",
             hasError && !file && "border-red-300 bg-red-50/30",
             disabled && "cursor-not-allowed opacity-60",

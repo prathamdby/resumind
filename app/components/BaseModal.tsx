@@ -1,6 +1,7 @@
 "use client";
 
-import { type ReactNode } from "react";
+import { type ReactNode, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/app/lib/utils";
 
 interface BaseModalProps {
@@ -24,16 +25,22 @@ const BaseModal = ({
   maxWidth = "md",
   contentClassName,
 }: BaseModalProps) => {
-  if (!isOpen) return null;
+  const [mounted, setMounted] = useState(false);
 
-  return (
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted || !isOpen) return null;
+
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto overflow-x-hidden bg-slate-900/40 p-4 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
         className={cn(
-          "surface-card surface-card--tight mx-4 w-full space-y-6",
+          "relative surface-card surface-card--tight w-full space-y-6 shadow-2xl animate-in zoom-in-95 duration-200",
           maxWidthClasses[maxWidth],
           contentClassName,
         )}
@@ -41,7 +48,8 @@ const BaseModal = ({
       >
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
 

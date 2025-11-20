@@ -9,7 +9,15 @@ import ReasoningToggle, {
 } from "@/app/components/ReasoningToggle";
 import { cn } from "@/app/lib/utils";
 import { toast } from "sonner";
-import { Globe } from "lucide-react";
+import {
+  Globe,
+  Building2,
+  Briefcase,
+  FileText,
+  Sparkles,
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
 import { analyzeResume, importJobFromUrl, importJobFromPdf } from "@/lib/api";
 
 const checklist = [
@@ -262,151 +270,144 @@ export default function UploadForm() {
   };
 
   return (
-    <>
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-        <form
-          id="upload-form"
-          onSubmit={handleSubmit}
-          className="form-panel surface-card surface-card--tight"
-          aria-describedby="upload-status"
-        >
-          <div className="flex items-center justify-between gap-4">
-            <h2 className="text-lg font-semibold text-slate-900">
-              Job details
-            </h2>
+    <div className="relative">
+      <form
+        id="upload-form"
+        onSubmit={handleSubmit}
+        className="surface-card surface-card--tight grid gap-0 p-0 overflow-hidden lg:grid-cols-[1.4fr_1fr]"
+        aria-describedby="upload-status"
+      >
+        {/* Left Column: Job Details */}
+        <div className="flex flex-col gap-8 border-b border-slate-100 p-6 lg:border-b-0 lg:border-r lg:p-8">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+            <div>
+              <h2 className="text-xl font-semibold text-slate-900">
+                Job Context
+              </h2>
+              <p className="text-sm text-slate-500">
+                Tell us about the role so we can tailor the feedback.
+              </p>
+            </div>
             <button
               type="button"
               onClick={() => setImportModalOpen(true)}
               disabled={isProcessing || isImporting}
-              className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-white/80 px-4 py-2 text-sm font-medium text-indigo-600 transition-all hover:bg-indigo-50 hover:text-indigo-700 focus-visible:ring-2 focus-visible:ring-indigo-200 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="group inline-flex items-center gap-2 rounded-full bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-600 transition-all hover:bg-indigo-100 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-indigo-200 disabled:opacity-60"
             >
-              <Globe className="h-4 w-4" />
+              <Sparkles className="size-4 transition-transform group-hover:scale-110" />
               Import details
             </button>
           </div>
 
-          <div className="form-panel__grid">
+          <div className="grid gap-6 sm:grid-cols-2">
             <div className="input-wrapper">
               <label htmlFor="company-name" className="input-label">
                 Company name
               </label>
-              <input
-                type="text"
-                id="company-name"
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-                placeholder="e.g. Aurora Labs"
-                className="input-field"
-                disabled={isProcessing || isImporting}
-              />
+              <div className="relative">
+                <Building2 className="absolute left-3.5 top-3.5 size-5 text-slate-400" />
+                <input
+                  type="text"
+                  id="company-name"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  placeholder="e.g. Aurora Labs"
+                  className="input-field pl-10"
+                  disabled={isProcessing || isImporting}
+                />
+              </div>
             </div>
             <div className="input-wrapper">
               <label htmlFor="job-title" className="input-label required">
                 Job title
               </label>
-              <input
-                type="text"
-                id="job-title"
-                value={jobTitle}
-                onChange={(e) => {
-                  setJobTitle(e.target.value);
-                  if (touched.jobTitle) {
+              <div className="relative">
+                <Briefcase className="absolute left-3.5 top-3.5 size-5 text-slate-400" />
+                <input
+                  type="text"
+                  id="job-title"
+                  value={jobTitle}
+                  onChange={(e) => {
+                    setJobTitle(e.target.value);
+                    if (touched.jobTitle) {
+                      setFieldErrors((prev) => ({
+                        ...prev,
+                        jobTitle: validateJobTitle(e.target.value),
+                      }));
+                    }
+                  }}
+                  onBlur={(event) => {
+                    setTouched((prev) => ({ ...prev, jobTitle: true }));
                     setFieldErrors((prev) => ({
                       ...prev,
-                      jobTitle: validateJobTitle(e.target.value),
+                      jobTitle: validateJobTitle(event.target.value),
                     }));
-                  }
-                }}
-                onBlur={(event) => {
-                  setTouched((prev) => ({ ...prev, jobTitle: true }));
-                  setFieldErrors((prev) => ({
-                    ...prev,
-                    jobTitle: validateJobTitle(event.target.value),
-                  }));
-                }}
-                placeholder="e.g. Senior Product Designer"
-                className={cn(
-                  "input-field",
-                  touched.jobTitle &&
-                    fieldErrors.jobTitle &&
-                    "!border-red-300 !bg-red-50/30",
-                  touched.jobTitle &&
-                    !fieldErrors.jobTitle &&
-                    "!border-green-300 !bg-green-50/20",
-                )}
-                aria-invalid={touched.jobTitle && Boolean(fieldErrors.jobTitle)}
-                aria-describedby={
-                  touched.jobTitle && fieldErrors.jobTitle
-                    ? "job-title-error"
-                    : undefined
-                }
-                required
-                disabled={isProcessing || isImporting}
-              />
+                  }}
+                  placeholder="e.g. Senior Product Designer"
+                  className={cn(
+                    "input-field pl-10",
+                    touched.jobTitle &&
+                      fieldErrors.jobTitle &&
+                      "!border-red-300 !bg-red-50/30",
+                    touched.jobTitle &&
+                      !fieldErrors.jobTitle &&
+                      "!border-green-300 !bg-green-50/20",
+                  )}
+                  required
+                  disabled={isProcessing || isImporting}
+                />
+              </div>
               {touched.jobTitle && fieldErrors.jobTitle && (
-                <p
-                  id="job-title-error"
-                  className="text-sm font-medium text-red-600"
-                  role="alert"
-                >
+                <p className="text-sm font-medium text-red-600">
                   {fieldErrors.jobTitle}
                 </p>
               )}
             </div>
           </div>
 
-          <div className="input-wrapper">
+          <div className="input-wrapper flex-1">
             <label htmlFor="job-description" className="input-label required">
               Job description
             </label>
-            <textarea
-              rows={6}
-              id="job-description"
-              value={jobDescription}
-              onChange={(e) => {
-                setJobDescription(e.target.value);
-                if (touched.jobDescription) {
+            <div className="relative h-full">
+              <FileText className="absolute left-3.5 top-3.5 size-5 text-slate-400" />
+              <textarea
+                rows={8}
+                id="job-description"
+                value={jobDescription}
+                onChange={(e) => {
+                  setJobDescription(e.target.value);
+                  if (touched.jobDescription) {
+                    setFieldErrors((prev) => ({
+                      ...prev,
+                      jobDescription: validateJobDescription(e.target.value),
+                    }));
+                  }
+                }}
+                onBlur={(event) => {
+                  setTouched((prev) => ({ ...prev, jobDescription: true }));
                   setFieldErrors((prev) => ({
                     ...prev,
-                    jobDescription: validateJobDescription(e.target.value),
+                    jobDescription: validateJobDescription(event.target.value),
                   }));
-                }
-              }}
-              onBlur={(event) => {
-                setTouched((prev) => ({ ...prev, jobDescription: true }));
-                setFieldErrors((prev) => ({
-                  ...prev,
-                  jobDescription: validateJobDescription(event.target.value),
-                }));
-              }}
-              placeholder="Paste the most important responsibilities and requirements"
-              className={cn(
-                "textarea-field",
-                touched.jobDescription &&
-                  fieldErrors.jobDescription &&
-                  "!border-red-300 !bg-red-50/30",
-                touched.jobDescription &&
-                  !fieldErrors.jobDescription &&
-                  jobDescription.trim().length >= 50 &&
-                  "!border-green-300 !bg-green-50/20",
-              )}
-              aria-invalid={
-                touched.jobDescription && Boolean(fieldErrors.jobDescription)
-              }
-              aria-describedby={
-                touched.jobDescription && fieldErrors.jobDescription
-                  ? "job-description-error"
-                  : undefined
-              }
-              required
-              disabled={isProcessing || isImporting}
-            />
+                }}
+                placeholder="Paste the full job description here. The more details, the better the feedback."
+                className={cn(
+                  "textarea-field pl-10 h-full min-h-[200px]",
+                  touched.jobDescription &&
+                    fieldErrors.jobDescription &&
+                    "!border-red-300 !bg-red-50/30",
+                  touched.jobDescription &&
+                    !fieldErrors.jobDescription &&
+                    jobDescription.trim().length >= 50 &&
+                    "!border-green-300 !bg-green-50/20",
+                )}
+                required
+                disabled={isProcessing || isImporting}
+              />
+            </div>
             {touched.jobDescription && fieldErrors.jobDescription && (
-              <p
-                id="job-description-error"
-                className="text-sm font-medium text-red-600"
-                role="alert"
-              >
+              <p className="text-sm font-medium text-red-600">
                 {fieldErrors.jobDescription}
               </p>
             )}
@@ -419,24 +420,45 @@ export default function UploadForm() {
               )}
           </div>
 
-          <div className="input-wrapper">
-            <label className="input-label">Analysis depth</label>
+          <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-4">
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-slate-900">
+                Analysis Depth
+              </label>
+              <p className="text-xs text-slate-500">
+                Higher depth takes longer but provides richer feedback.
+              </p>
+            </div>
             <ReasoningToggle
               value={reasoningLevel}
               onChange={setReasoningLevel}
               disabled={isProcessing || isImporting}
             />
-            <p className="text-xs text-slate-500">
-              Choose how thorough the AI review should be. Higher levels take
-              longer and use more compute.
+          </div>
+        </div>
+
+        {/* Right Column: Resume Upload */}
+        <div className="flex flex-col gap-6 bg-slate-50/30 p-6 lg:p-8">
+          {/* Mobile Tip */}
+          <div className="block lg:hidden rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+            <div className="flex items-center gap-2 font-semibold">
+              <AlertCircle className="size-4" />
+              <span>PDF Only, Max 20MB</span>
+            </div>
+          </div>
+
+          <div>
+            <h2 className="text-xl font-semibold text-slate-900">
+              Your Resume
+            </h2>
+            <p className="text-sm text-slate-500">
+              Upload your latest PDF version.
             </p>
           </div>
 
-          <div className="input-wrapper">
-            <label className="input-label required" htmlFor="resume-upload">
-              Resume PDF
-            </label>
+          <div className="flex-1 flex flex-col">
             <FileUploader
+              className="h-full"
               onFileSelect={handleFileSelect}
               onErrorChange={(message) => {
                 setFieldErrors((prev) => ({ ...prev, file: message }));
@@ -445,74 +467,62 @@ export default function UploadForm() {
               disabled={isProcessing || isImporting}
               inputId="resume-upload"
             />
-            <p className="text-xs text-slate-500">
-              Your file is stored securely so you can revisit the analysis
-              later.
-            </p>
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <button
-              className="primary-button"
-              type="submit"
-              disabled={isProcessing || !file}
-            >
-              {isProcessing ? "Analyzing..." : "Analyze resume"}
-            </button>
-            <span className="text-xs text-slate-500">
-              {file ? "Ready to analyze" : "Select a PDF to enable analysis"}
-            </span>
-          </div>
-        </form>
-
-        <aside
-          className="surface-card surface-card--tight flex h-full min-h-[420px] flex-col gap-6"
-          aria-live="polite"
-        >
-          <div className="flex flex-1 flex-col">
-            {isProcessing ? (
-              <div className="flex flex-1 flex-col gap-4 text-center">
-                <div className="flex flex-1 items-center justify-center overflow-hidden rounded-3xl bg-indigo-50/70 p-6">
-                  <img
-                    src="/images/resume-scan.gif"
-                    alt="Analyzing resume"
-                    className="h-full w-full max-h-[420px] object-contain"
-                  />
-                </div>
-                <p className="text-sm text-slate-600">
-                  Keep this tab open. We will redirect you once the analysis is
-                  complete.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4 text-sm text-slate-600">
-                <h2 className="text-base font-semibold text-slate-900">
-                  Before you upload
-                </h2>
-                <ul className="space-y-3">
-                  {checklist.map((item) => (
-                    <li
-                      key={item.title}
-                      className="rounded-2xl border border-slate-100 bg-white/90 px-4 py-3"
-                    >
-                      <p className="font-semibold text-slate-800">
-                        {item.title}
-                      </p>
-                      <p>{item.description}</p>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-          <p
-            id="upload-status"
-            className="mt-auto text-sm font-semibold text-indigo-600 text-center"
+          <button
+            className="primary-button w-full shadow-lg shadow-indigo-200/50"
+            type="submit"
+            disabled={isProcessing || !file}
           >
-            {statusText}
-          </p>
-        </aside>
-      </div>
+            {isProcessing ? "Analyzing..." : "Run Analysis"}
+          </button>
+
+          {/* Pro Tips (Inside Card) */}
+          <div className="rounded-2xl border border-slate-200/60 bg-white/60 p-4">
+            <h3 className="mb-3 text-sm font-semibold text-slate-900">
+              Pro Tips
+            </h3>
+            <ul className="space-y-3">
+              {checklist.map((item) => (
+                <li key={item.title} className="flex items-start gap-3 text-sm">
+                  <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-indigo-500" />
+                  <div>
+                    <span className="font-medium text-slate-700">
+                      {item.title}
+                    </span>
+                    <p className="mt-0.5 text-xs text-slate-500">
+                      {item.description}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </form>
+
+      {/* Processing Overlay */}
+      {isProcessing && (
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center rounded-3xl bg-white/80 backdrop-blur-md animate-in fade-in duration-500">
+          <div className="relative flex flex-col items-center gap-8 p-8 text-center">
+            <div className="relative size-24">
+              <div className="absolute inset-0 animate-ping rounded-full bg-indigo-100 opacity-75" />
+              <div className="relative flex size-24 items-center justify-center rounded-full bg-white shadow-xl">
+                <Sparkles className="size-10 animate-pulse text-indigo-600" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-2xl font-semibold text-slate-900">
+                Analyzing your profile...
+              </h3>
+              <p className="max-w-xs text-slate-600">
+                Our AI is matching your resume against the job requirements.
+                This usually takes about 15-20 seconds.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ImportJobModal
         isOpen={importModalOpen}
@@ -523,6 +533,6 @@ export default function UploadForm() {
         onImportUrl={handleImportFromUrl}
         onImportPdf={handleImportFromPdf}
       />
-    </>
+    </div>
   );
 }

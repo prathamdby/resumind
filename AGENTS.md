@@ -47,7 +47,7 @@
 
 **Critical**: All UI work must follow `DESIGN_SYSTEM.md`. Key principles:
 
-- **Typography**: Mona Sans font family (loaded from Google Fonts). Never use Inter, Roboto, or system fallbacks as primary.
+- **Typography**: Plus Jakarta Sans (loaded via `next/font/google`). Never use Inter, Roboto, or system fallbacks as primary.
 - **Color**: Indigo/pink gradient palette with glassmorphic surfaces. CSS variables defined in `app/globals.css` (`@theme` block).
 - **Surfaces**: Frosted glass cards with `backdrop-blur-md`, `border-white/30`, `bg-[var(--color-surface-muted)]`.
 - **Motion**: Subtle transitions (200-500ms), `ease-out` easing. Hover lifts (`hover:-translate-y-1`).
