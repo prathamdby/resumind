@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "@/lib/auth-server";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { withAuthAndRateLimit } from "@/lib/api-middleware";
+import { handleAPIError } from "@/lib/api-errors";
 import { extractJobData } from "@/lib/job-import";
 
 const MAX_CONTENT_LENGTH = 15000;
@@ -56,83 +56,39 @@ async function fetchPageContent(url: string): Promise<string> {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession();
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 },
-      );
-    }
+    return await withAuthAndRateLimit(request, "/api/import-job", async () => {
+      const body = await request.json();
+      const { url } = body;
 
-    const rateLimitResult = await checkRateLimit(
-      request,
-      session.user.id,
-      "/api/import-job",
-    );
+      if (!url || typeof url !== "string") {
+        return NextResponse.json(
+          { success: false, error: "URL is required" },
+          { status: 400 },
+        );
+      }
 
-    if (!rateLimitResult.allowed) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Too many requests. Please try again later.",
-        },
-        {
-          status: 429,
-          headers: {
-            "Retry-After": String(rateLimitResult.retryAfter || 60),
-          },
-        },
-      );
-    }
+      const urlValidation = validateUrl(url);
+      if (!urlValidation.valid) {
+        return NextResponse.json(
+          { success: false, error: urlValidation.error || "Invalid URL" },
+          { status: 400 },
+        );
+      }
 
-    const body = await request.json();
-    const { url } = body;
+      const pageContent = await fetchPageContent(url);
+      const jobData = await extractJobData(pageContent);
 
-    if (!url || typeof url !== "string") {
-      return NextResponse.json(
-        { success: false, error: "URL is required" },
-        { status: 400 },
-      );
-    }
-
-    const urlValidation = validateUrl(url);
-    if (!urlValidation.valid) {
-      return NextResponse.json(
-        { success: false, error: urlValidation.error || "Invalid URL" },
-        { status: 400 },
-      );
-    }
-
-    const pageContent = await fetchPageContent(url);
-    const jobData = await extractJobData(pageContent);
-
-    return NextResponse.json({
-      success: true,
-      data: jobData,
+      return NextResponse.json({
+        success: true,
+        data: jobData,
+      });
     });
   } catch (error) {
-    if (error instanceof Error) {
-      if (error.message.includes("timeout")) {
-        return NextResponse.json(
-          { success: false, error: "Request timed out. Please try again." },
-          { status: 504 },
-        );
-      }
-
-      if (error.message.includes("fetch")) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Failed to fetch job posting. Please check the URL.",
-          },
-          { status: 502 },
-        );
-      }
-    }
-
-    return NextResponse.json(
-      { success: false, error: "Failed to process job posting" },
-      { status: 500 },
-    );
+    return handleAPIError(error, {
+      timeoutMessage: "Request timed out. Please try again.",
+      externalServiceMessage:
+        "Failed to fetch job posting. Please check the URL.",
+      defaultMessage: "Failed to process job posting",
+    });
   }
 }

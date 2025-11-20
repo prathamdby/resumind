@@ -1,36 +1,30 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "@/lib/auth-server";
+import { withAuth } from "@/lib/api-middleware";
+import { handleAPIError } from "@/lib/api-errors";
 import { prisma } from "@/lib/prisma";
 
 export async function DELETE() {
   try {
-    const session = await getServerSession();
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 },
-      );
-    }
+    return await withAuth(async ({ userId }) => {
+      await prisma.$transaction([
+        prisma.resume.deleteMany({
+          where: { userId },
+        }),
+        prisma.rateLimit.deleteMany({
+          where: {
+            OR: [
+              { key: { startsWith: `/api/import-job:${userId}` } },
+              { key: { startsWith: `/api/analyze:${userId}` } },
+            ],
+          },
+        }),
+      ]);
 
-    await prisma.$transaction([
-      prisma.resume.deleteMany({
-        where: { userId: session.user.id },
-      }),
-      prisma.rateLimit.deleteMany({
-        where: {
-          OR: [
-            { key: { startsWith: `/api/import-job:${session.user.id}` } },
-            { key: { startsWith: `/api/analyze:${session.user.id}` } },
-          ],
-        },
-      }),
-    ]);
-
-    return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json(
-      { success: false, error: "Failed to delete data" },
-      { status: 500 },
-    );
+      return NextResponse.json({ success: true });
+    });
+  } catch (error) {
+    return handleAPIError(error, {
+      defaultMessage: "Failed to delete data",
+    });
   }
 }

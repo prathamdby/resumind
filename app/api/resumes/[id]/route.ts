@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "@/lib/auth-server";
+import { withAuth } from "@/lib/api-middleware";
+import { handleAPIError } from "@/lib/api-errors";
 import { prisma } from "@/lib/prisma";
 
 export async function DELETE(
@@ -7,35 +8,28 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await getServerSession();
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 },
-      );
-    }
+    return await withAuth(async ({ userId }) => {
+      const { id } = await params;
 
-    const { id } = await params;
+      const resume = await prisma.resume.findUnique({
+        where: { id },
+        select: { userId: true },
+      });
 
-    const resume = await prisma.resume.findUnique({
-      where: { id },
-      select: { userId: true },
+      if (!resume || resume.userId !== userId) {
+        return NextResponse.json(
+          { success: false, error: "Resume not found" },
+          { status: 404 },
+        );
+      }
+
+      await prisma.resume.delete({ where: { id } });
+
+      return NextResponse.json({ success: true });
     });
-
-    if (!resume || resume.userId !== session.user.id) {
-      return NextResponse.json(
-        { success: false, error: "Resume not found" },
-        { status: 404 },
-      );
-    }
-
-    await prisma.resume.delete({ where: { id } });
-
-    return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json(
-      { success: false, error: "Failed to delete resume" },
-      { status: 500 },
-    );
+  } catch (error) {
+    return handleAPIError(error, {
+      defaultMessage: "Failed to delete resume",
+    });
   }
 }
