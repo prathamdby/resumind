@@ -17,7 +17,7 @@
     "clsx": "^2.1.1",
     "dotenv": "^17.2.3",
     "lucide-react": "^0.454.0",
-    "next": "^16.0.7",
+    "next": "16.0.10",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
     "react-dropzone": "^14.3.8",
