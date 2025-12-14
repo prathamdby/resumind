@@ -25,7 +25,7 @@ An intelligent resume analysis platform that provides personalized, ATS-aligned 
 - **Authentication**: Better Auth with Google OAuth
 - **Database**: Neon PostgreSQL with Prisma ORM
 - **AI**: Cerebras AI for resume analysis and job data extraction
-- **PDF Processing**: External PDF service for markdown conversion and preview generation
+- **PDF Processing**: LlamaParse (LlamaCloud) for markdown conversion and pdf-to-img for preview generation
 - **Job Import**: Jina.ai for web content extraction
 - **Styling**: Tailwind CSS v4 with custom animations
 - **File Upload**: React Dropzone
@@ -39,7 +39,7 @@ An intelligent resume analysis platform that provides personalized, ATS-aligned 
 - A Neon PostgreSQL database (sign up at [neon.tech](https://neon.tech))
 - Google OAuth credentials (from [Google Cloud Console](https://console.cloud.google.com))
 - Cerebras API key (from [Cerebras Cloud](https://www.cerebras.net/cloud))
-- PDF service endpoint (for PDF to markdown conversion and preview generation)
+- LlamaCloud API key (from [LlamaCloud](https://cloud.llamaindex.ai))
 - A modern web browser
 
 ### Installation
@@ -81,8 +81,8 @@ GOOGLE_CLIENT_SECRET="<your-google-oauth-client-secret>"
 # Cerebras AI Configuration
 CEREBRAS_API_KEY="<your-cerebras-api-key>"
 
-# PDF Service Configuration
-PDF_SERVICE_URL="http://localhost:8000"  # URL of the Python FastAPI service for PDF to markdown conversion
+# LlamaCloud Configuration
+LLAMA_CLOUD_API_KEY="<your-llamacloud-api-key>"  # For PDF parsing via LlamaParse
 
 # Rate Limiting (optional)
 DISABLE_RATE_LIMITING="false"  # Set to "true" in development if needed
@@ -99,9 +99,10 @@ DISABLE_RATE_LIMITING="false"  # Set to "true" in development if needed
   4. Create OAuth 2.0 credentials
   5. Add authorized redirect URI: `http://localhost:3000/api/auth/callback/google` (for development)
   6. Copy the Client ID and Client Secret to your `.env` file
-- The PDF service should expose:
-  - `POST /convert` - Accepts PDF file, returns `{ markdown: string, preview_image?: string }`
-  - `GET /health` - Health check endpoint
+- For LlamaCloud setup:
+  1. Sign up at [LlamaCloud](https://cloud.llamaindex.ai)
+  2. Create an API key from the dashboard
+  3. Copy the API key to your `.env` file as `LLAMA_CLOUD_API_KEY`
 
 4. Set up the database:
 
@@ -117,7 +118,7 @@ bunx prisma migrate dev --name init_better_auth
 
 - The job import feature uses rate limiting (5 requests per minute per user) to prevent abuse. Rate limits are stored in the database and persist across serverless invocations.
 - Resume analysis uses rate limiting (2 requests per minute per user).
-- The PDF service processes PDFs synchronously (one at a time). Under concurrent load, requests will queue and may timeout.
+- PDF parsing is performed using LlamaParse (LlamaCloud) with a 120-second timeout. Large or complex PDFs may take longer to process.
 - Maximum file size is 20 MB. PDFs are converted to markdown (max 15K characters) before AI analysis.
 
 5. Start the development server:

@@ -5,56 +5,16 @@ import { makeAIRequest } from "@/lib/ai-helpers";
 import { FeedbackSchema } from "@/lib/schemas";
 import { getAISystemPrompt, prepareInstructions } from "@/constants";
 import { prisma } from "@/lib/prisma";
-import { writeFile, unlink, readFile } from "fs/promises";
+import { writeFile, unlink } from "fs/promises";
 import { join } from "path";
 import { tmpdir } from "os";
 import { randomUUID } from "crypto";
+import { parsePDF } from "@/lib/pdf-parser";
+import { generatePreview } from "@/lib/pdf-preview";
 import type { Feedback } from "@/types";
 import type { ReasoningLevel } from "@/app/components/ReasoningToggle";
 
 const MAX_MARKDOWN_LENGTH = 15000;
-const PDF_SERVICE_URL = process.env.PDF_SERVICE_URL || "http://localhost:8000";
-
-async function convertPdfToMarkdown(
-  filePath: string,
-): Promise<{ markdown: string; previewImage: string | null }> {
-  const fileBuffer = await readFile(filePath);
-
-  const formData = new FormData();
-  const file = new File([new Uint8Array(fileBuffer)], "resume.pdf", {
-    type: "application/pdf",
-  });
-  formData.append("file", file);
-  formData.append("extract_preview", "true");
-
-  const response = await fetch(`${PDF_SERVICE_URL}/convert`, {
-    method: "POST",
-    body: formData,
-    signal: AbortSignal.timeout(25000),
-  });
-
-  if (!response.ok) {
-    throw new Error("PDF conversion failed");
-  }
-
-  const result = await response.json();
-  const markdown = result.markdown || "";
-
-  let previewImage: string | null = null;
-  if (result.preview_image && typeof result.preview_image === "string") {
-    if (
-      result.preview_image.startsWith("data:image/") &&
-      result.preview_image.length <= 5_000_000
-    ) {
-      previewImage = result.preview_image;
-    }
-  }
-
-  return {
-    markdown: markdown.slice(0, MAX_MARKDOWN_LENGTH),
-    previewImage,
-  };
-}
 
 async function analyzeWithAI(
   markdown: string,
@@ -114,28 +74,18 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        try {
-          await fetch(`${PDF_SERVICE_URL}/health`, {
-            signal: AbortSignal.timeout(2000),
-          });
-        } catch {
-          return NextResponse.json(
-            {
-              success: false,
-              error: "PDF service unavailable. Please try again later.",
-            },
-            { status: 502 },
-          );
-        }
-
         tempFilePath = join(tmpdir(), `resume-${userId}-${randomUUID()}.pdf`);
         const buffer = Buffer.from(await file.arrayBuffer());
 
         await writeFile(tempFilePath, buffer);
 
-        const { markdown, previewImage } =
-          await convertPdfToMarkdown(tempFilePath);
-        if (markdown.length >= MAX_MARKDOWN_LENGTH) {
+        const [markdown, previewImage] = await Promise.all([
+          parsePDF(tempFilePath),
+          generatePreview(tempFilePath),
+        ]);
+
+        const truncatedMarkdown = markdown.slice(0, MAX_MARKDOWN_LENGTH);
+        if (truncatedMarkdown.length >= MAX_MARKDOWN_LENGTH) {
           return NextResponse.json(
             {
               success: false,
@@ -146,7 +96,7 @@ export async function POST(request: NextRequest) {
         }
 
         const feedback = await analyzeWithAI(
-          markdown,
+          truncatedMarkdown,
           jobTitle,
           jobDescription,
           reasoningLevel,
@@ -167,7 +117,7 @@ export async function POST(request: NextRequest) {
             jobTitle,
             jobDescription,
             companyName: companyName || null,
-            resumeMarkdown: markdown,
+            resumeMarkdown: truncatedMarkdown,
             feedback: validation.data,
             previewImage,
           },
@@ -181,7 +131,7 @@ export async function POST(request: NextRequest) {
       } catch (error) {
         return handleAPIError(error, {
           externalServiceMessage:
-            "PDF service unavailable. Please try again later.",
+            "PDF parsing service unavailable. Please try again later.",
           defaultMessage: "Failed to analyze resume",
         });
       } finally {

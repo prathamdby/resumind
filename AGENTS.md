@@ -23,7 +23,7 @@
 | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Server/client component boundary violations | Mark client components with `"use client"` directive. Server components are default; use them for data fetching. Keep browser-only APIs (`window`, `localStorage`) inside client components or `useEffect`.                    |
 | AI responses breaking UI assumptions        | Keep the validation pipeline intact: AI response → `JSON.parse` → `FeedbackSchema.safeParse()` (Zod). Add fields only after updating both the schema string in `constants/index.ts`, `types/index.d.ts`, and `lib/schemas.ts`. |
-| PDF service unavailable                     | External PDF service must be running at `PDF_SERVICE_URL`. Health check happens before conversion. Handle timeouts gracefully (25s limit).                                                                                     |
+| PDF parsing unavailable                     | PDF parsing uses LlamaParse (LlamaCloud) via `LLAMA_CLOUD_API_KEY`. Requires valid API key. Handle timeouts gracefully (120s limit). Preview generation uses pdf-to-img locally and may fail silently (returns null).          |
 | Rate limit exhaustion                       | Rate limits: 2 analyses/min, 5 job imports/min per user. Uses in-memory cache + database persistence. Test with `DISABLE_RATE_LIMITING=true` in development if needed.                                                         |
 | Authentication redirect loops               | Protected routes check `getServerSession()` server-side and redirect to `/auth` if unauthenticated. Client-side navigation uses `next/navigation` (`useRouter`, `redirect`).                                                   |
 | Database connection issues                  | Uses Neon PostgreSQL with pooled connection (`DATABASE_URL`) for queries and direct connection (`DIRECT_DATABASE_URL`) for migrations. Ensure both are set correctly.                                                          |
@@ -57,11 +57,11 @@ When adding components, reference existing patterns (`ResumeCard`, `Navbar`, `Up
 
 ### Ghosts in the machine (historical decisions that still bind the design)
 
-- **PDF service dependency**: Resume analysis requires an external PDF service (Python FastAPI) running at `PDF_SERVICE_URL`. This service converts PDFs to markdown and generates preview images. The service is synchronous and queues requests; timeouts occur under load.
+- **PDF parsing integration**: Resume analysis uses LlamaParse (LlamaCloud) for PDF-to-markdown conversion via `lib/pdf-parser.ts`. Preview images are generated locally using pdf-to-img via `lib/pdf-preview.ts`. Parsing has a 120s timeout; preview generation fails gracefully (returns null if unsuccessful).
 - **Prompt persona**: The behavioral-economist persona and emotional arc in `prepareInstructions` exist to stabilize AI tone. Removing it caused high rejection rates from ATS reviewers; keep the persona hidden from end users but present in prompts.
 - **Accordion persistence**: The accordion component (`app/components/Accordion.tsx`) persists state to `localStorage` using a `persistKey`. It also handles URL hash navigation (deep links). Preserve this when adding new accordion sections.
 - **Rate limit hybrid strategy**: Rate limiting uses both in-memory cache (fast checks) and database persistence (survives serverless cold starts). The cache TTL is 60s; database records persist for 7 days before cleanup.
-- **Preview image storage**: Preview images are stored as base64 strings in the database (`previewImage` field, `@db.Text`). Max size: 5MB. If the PDF service doesn't return a preview, the UI gracefully handles missing images.
+- **Preview image storage**: Preview images are stored as base64 strings in the database (`previewImage` field, `@db.Text`). Max size: 5MB. If preview generation fails, the UI gracefully handles missing images.
 
 ### Directory signals
 
@@ -71,7 +71,9 @@ When adding components, reference existing patterns (`ResumeCard`, `Navbar`, `Up
 | `app/upload/page.tsx`           | Upload page (server component). Renders `UploadForm` client component. Minimal logic; data fetching happens in API routes.                                                                                         |
 | `app/components/UploadForm.tsx` | The heaviest client component: form state, validation, file handling, API calls, error handling, and job import integration. Treat it as the canonical workflow reference.                                         |
 | `app/page.tsx`                  | Dashboard (server component). Fetches resumes via Prisma, renders `ResumeCard` components. Handles empty states and navigation.                                                                                    |
-| `app/api/analyze/route.ts`      | Core analysis endpoint. Handles PDF upload, conversion, AI analysis, validation, and database persistence. Rate limited (2/min).                                                                                   |
+| `app/api/analyze/route.ts`      | Core analysis endpoint. Handles PDF upload, conversion, AI analysis, validation, and database persistence. Rate limited (2/min). Uses `parsePDF` and `generatePreview` for PDF processing.                         |
+| `lib/pdf-parser.ts`             | PDF-to-markdown conversion using LlamaParse. Handles uploads to LlamaCloud, polls for completion with 120s timeout. Used by analyze and import-job-pdf routes.                                                     |
+| `lib/pdf-preview.ts`            | Preview image generation using pdf-to-img. Converts first page to PNG, returns base64 data URL. Fails gracefully (returns null on error).                                                                          |
 | `constants/index.ts`            | Single source of truth for AI contracts. Update here before editing validators in `lib/schemas.ts`.                                                                                                                |
 | `types/index.d.ts`              | Global ambient types for `Resume`, `Feedback`, and `LineImprovement`. Align any new persisted shape with these definitions and Prisma schema.                                                                      |
 | `lib/schemas.ts`                | Zod validation schemas. Must stay in sync with `types/index.d.ts` and `constants/index.ts`. Used for runtime validation of AI responses and user input.                                                            |

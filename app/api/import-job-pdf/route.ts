@@ -2,39 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth-server";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { extractJobData } from "@/lib/job-import";
+import { parsePDF } from "@/lib/pdf-parser";
 import { writeFile, unlink } from "fs/promises";
 import { join } from "path";
 import { tmpdir } from "os";
 
 const MAX_CONTENT_LENGTH = 15000;
-const PDF_SERVICE_URL = process.env.PDF_SERVICE_URL || "http://localhost:8000";
-
-async function convertPdfToMarkdown(filePath: string): Promise<string> {
-  const fs = await import("fs/promises");
-  const fileBuffer = await fs.readFile(filePath);
-
-  const formData = new FormData();
-  const file = new File([new Uint8Array(fileBuffer)], "job-description.pdf", {
-    type: "application/pdf",
-  });
-  formData.append("file", file);
-  formData.append("extract_preview", "false");
-
-  const response = await fetch(`${PDF_SERVICE_URL}/convert`, {
-    method: "POST",
-    body: formData,
-    signal: AbortSignal.timeout(25000),
-  });
-
-  if (!response.ok) {
-    throw new Error("PDF conversion failed");
-  }
-
-  const result = await response.json();
-  const markdown = result.markdown || "";
-
-  return markdown.slice(0, MAX_CONTENT_LENGTH);
-}
 
 export async function POST(request: NextRequest) {
   let tempFilePath: string | null = null;
@@ -102,22 +75,10 @@ export async function POST(request: NextRequest) {
     try {
       await writeFile(tempFilePath, buffer);
 
-      try {
-        await fetch(`${PDF_SERVICE_URL}/health`, {
-          signal: AbortSignal.timeout(2000),
-        });
-      } catch {
-        return NextResponse.json(
-          {
-            success: false,
-            error: "PDF service unavailable. Please try again later.",
-          },
-          { status: 502 },
-        );
-      }
+      const markdown = await parsePDF(tempFilePath);
+      const truncatedMarkdown = markdown.slice(0, MAX_CONTENT_LENGTH);
 
-      const markdown = await convertPdfToMarkdown(tempFilePath);
-      if (markdown.length < 50) {
+      if (truncatedMarkdown.length < 50) {
         return NextResponse.json(
           {
             success: false,
@@ -128,7 +89,7 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const jobData = await extractJobData(markdown);
+      const jobData = await extractJobData(truncatedMarkdown);
 
       return NextResponse.json({
         success: true,
@@ -155,11 +116,11 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      if (error.message.includes("fetch") || error.message.includes("PDF")) {
+      if (error.message.includes("parsing")) {
         return NextResponse.json(
           {
             success: false,
-            error: "PDF service unavailable. Please try again later.",
+            error: "PDF parsing service unavailable. Please try again later.",
           },
           { status: 502 },
         );
