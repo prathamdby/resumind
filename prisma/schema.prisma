@@ -96,6 +96,7 @@ model Resume {
   resumeMarkdown String?  @db.Text
   feedback       Json
   previewImage   String?  @db.Text
+  latexContent   String?  @db.Text
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -40,6 +40,12 @@ const Navbar = () => {
           >
             My Resumes
           </Link>
+          <Link
+            href="/editor"
+            className="primary-button primary-button--ghost px-4 py-2 text-sm"
+          >
+            Create Resume
+          </Link>
           <Link href="/upload" className="primary-button px-5 py-2.5 text-sm">
             Analyze Resume
           </Link>
@@ -47,6 +53,13 @@ const Navbar = () => {
         </div>
 
         <div className="navbar__mobile gap-3">
+          <Link
+            href="/editor"
+            className="primary-button primary-button--ghost px-4 py-2 text-sm"
+            aria-label="Create a resume"
+          >
+            Create
+          </Link>
           <Link
             href="/upload"
             className="primary-button px-5 py-2 text-sm"
