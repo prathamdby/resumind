@@ -43,6 +43,13 @@ export async function PATCH(
       const { id } = await params;
       const { latexContent } = await request.json();
 
+      if (typeof latexContent !== "string") {
+        return NextResponse.json(
+          { success: false, error: "Invalid latexContent" },
+          { status: 400 },
+        );
+      }
+
       const resume = await prisma.resume.findFirst({
         where: { id, userId },
       });

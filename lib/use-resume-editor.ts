@@ -43,7 +43,7 @@ export function useResumeEditor(initialLatex?: string): UseResumeEditorReturn {
   );
 
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
-  const previousUrlRef = useRef<string | null>(null);
+  const pdfUrlsRef = useRef<string[]>([]);
 
   useEffect(() => {
     if (!initialLatex) {
@@ -72,17 +72,15 @@ export function useResumeEditor(initialLatex?: string): UseResumeEditorReturn {
   );
 
   useEffect(() => {
-    if (previousUrlRef.current && previousUrlRef.current !== pdfUrl) {
-      URL.revokeObjectURL(previousUrlRef.current);
+    if (pdfUrl) {
+      pdfUrlsRef.current.push(pdfUrl);
     }
-    previousUrlRef.current = pdfUrl;
   }, [pdfUrl]);
 
   useEffect(() => {
     return () => {
-      if (previousUrlRef.current) {
-        URL.revokeObjectURL(previousUrlRef.current);
-      }
+      pdfUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+      pdfUrlsRef.current = [];
     };
   }, []);
 
@@ -195,7 +193,7 @@ export function useResumeEditor(initialLatex?: string): UseResumeEditorReturn {
           }
         }
 
-        if (!fullResponse) {
+        if (fullResponse) {
           const extractedLatex = extractLatexFromResponse(fullResponse);
           if (extractedLatex) {
             setLatex(extractedLatex);

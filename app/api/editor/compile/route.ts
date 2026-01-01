@@ -34,11 +34,12 @@ export async function POST(request: NextRequest) {
         const timeout = setTimeout(() => controller.abort(), 15000);
 
         try {
-          const encodedLatex = encodeURIComponent(latex);
           const compileResponse = await fetch(
-            `${LATEX_ONLINE_URL}?text=${encodedLatex}&command=pdflatex`,
+            `${LATEX_ONLINE_URL}?command=pdflatex`,
             {
-              method: "GET",
+              method: "POST",
+              headers: { "Content-Type": "text/plain" },
+              body: latex,
               signal: controller.signal,
             },
           );
