@@ -35,11 +35,9 @@ export async function POST(request: NextRequest) {
 
         try {
           const compileResponse = await fetch(
-            `${LATEX_ONLINE_URL}?command=pdflatex`,
+            `${LATEX_ONLINE_URL}?text=${encodeURIComponent(latex)}&command=pdflatex`,
             {
-              method: "POST",
-              headers: { "Content-Type": "text/plain" },
-              body: latex,
+              method: "GET",
               signal: controller.signal,
             },
           );

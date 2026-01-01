@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getServerSession } from "@/lib/auth-server";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { cerebras } from "@/lib/ai";
+import { validateLatex } from "@/lib/latex-compiler";
 import { EDITOR_SYSTEM_PROMPT, UPDATE_RESUME_TOOL } from "@/constants/editor";
 
 export const runtime = "nodejs";
@@ -24,13 +25,13 @@ export async function POST(request: NextRequest) {
   const rateLimitResult = await checkRateLimit(
     request,
     session.user.id,
-    "/api/editor/chat",
+    "/api/editor/chat"
   );
 
   if (!rateLimitResult.allowed) {
     return new Response(
       JSON.stringify({ error: "Too many requests. Please try again later." }),
-      { status: 429, headers: { "Content-Type": "application/json" } },
+      { status: 429, headers: { "Content-Type": "application/json" } }
     );
   }
 
@@ -50,7 +51,7 @@ ${currentLatex}
 IMPORTANT: When the user asks you to modify their resume, you MUST use the update_resume tool to make changes. Do not just describe the changes - actually use the tool to apply them.`;
 
     const response = await cerebras.chat.completions.create({
-      model: "gpt-oss-120b",
+      model: "zai-glm-4.6",
       messages: [
         { role: "system", content: systemMessage },
         ...messages.map((m) => ({
@@ -62,7 +63,7 @@ IMPORTANT: When the user asks you to modify their resume, you MUST use the updat
       tool_choice: "auto",
       stream: true,
       temperature: 0.6,
-      max_completion_tokens: 65536,
+      max_completion_tokens: 50000,
     });
 
     const encoder = new TextEncoder();
@@ -91,8 +92,8 @@ IMPORTANT: When the user asks you to modify their resume, you MUST use the updat
             if (delta?.content) {
               controller.enqueue(
                 encoder.encode(
-                  `data: ${JSON.stringify({ content: delta.content })}\n\n`,
-                ),
+                  `data: ${JSON.stringify({ content: delta.content })}\n\n`
+                )
               );
             }
 
@@ -115,20 +116,21 @@ IMPORTANT: When the user asks you to modify their resume, you MUST use the updat
                 encoder.encode(
                   `data: ${JSON.stringify({
                     error: "AI returned incomplete response. Please try again.",
-                  })}\n\n`,
-                ),
+                  })}\n\n`
+                )
               );
             } else {
               try {
                 const args = JSON.parse(toolCallArgs);
 
-                if (!args.latex?.includes("\\documentclass")) {
+                const validation = validateLatex(args.latex || "");
+                if (!validation.valid) {
                   controller.enqueue(
                     encoder.encode(
                       `data: ${JSON.stringify({
-                        error: "AI returned invalid LaTeX document.",
-                      })}\n\n`,
-                    ),
+                        error: `AI returned invalid LaTeX document: ${validation.error}`,
+                      })}\n\n`
+                    )
                   );
                 } else {
                   controller.enqueue(
@@ -139,8 +141,8 @@ IMPORTANT: When the user asks you to modify their resume, you MUST use the updat
                           latex: args.latex,
                           explanation: args.explanation,
                         },
-                      })}\n\n`,
-                    ),
+                      })}\n\n`
+                    )
                   );
 
                   if (args.explanation) {
@@ -148,8 +150,8 @@ IMPORTANT: When the user asks you to modify their resume, you MUST use the updat
                       encoder.encode(
                         `data: ${JSON.stringify({
                           content: args.explanation,
-                        })}\n\n`,
-                      ),
+                        })}\n\n`
+                      )
                     );
                   }
                 }
@@ -158,8 +160,8 @@ IMPORTANT: When the user asks you to modify their resume, you MUST use the updat
                   encoder.encode(
                     `data: ${JSON.stringify({
                       error: "Failed to parse AI response. Please try again.",
-                    })}\n\n`,
-                  ),
+                    })}\n\n`
+                  )
                 );
               }
             }
@@ -170,8 +172,8 @@ IMPORTANT: When the user asks you to modify their resume, you MUST use the updat
         } catch (error) {
           controller.enqueue(
             encoder.encode(
-              `data: ${JSON.stringify({ error: "Stream error occurred" })}\n\n`,
-            ),
+              `data: ${JSON.stringify({ error: "Stream error occurred" })}\n\n`
+            )
           );
           controller.close();
         }
@@ -187,9 +189,28 @@ IMPORTANT: When the user asks you to modify their resume, you MUST use the updat
     });
   } catch (error) {
     console.error("Chat API error:", error);
+
+    const errorStatus = (error as { status?: number })?.status;
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to process chat request";
+
+    if (
+      errorStatus === 429 ||
+      errorMessage.includes("429") ||
+      errorMessage.includes("limit exceeded")
+    ) {
+      return new Response(
+        JSON.stringify({
+          error:
+            "AI service rate limit exceeded. Please wait a moment and try again.",
+        }),
+        { status: 429, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
     return new Response(
       JSON.stringify({ error: "Failed to process chat request" }),
-      { status: 500, headers: { "Content-Type": "application/json" } },
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 }
