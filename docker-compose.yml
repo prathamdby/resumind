@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: resumind
+      POSTGRES_USER: resumind
+      POSTGRES_PASSWORD: resumind
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U resumind"]
+      interval: 3s
+      retries: 10
+
+  app:
+    build: .
+    env_file: .env.docker
+    environment:
+      DATABASE_URL: postgresql://resumind:resumind@db:5432/resumind
+      DIRECT_DATABASE_URL: postgresql://resumind:resumind@db:5432/resumind
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db_data:
