@@ -25,9 +25,9 @@ function getInitials(name: string) {
 }
 
 const navItems = [
-  { href: "/", label: "My Resumes", icon: FileText },
-  { href: "/cover-letter", label: "Cover Letters", icon: Mail },
-  { href: "/upload", label: "Analyze Resume", icon: Upload },
+  { href: "/app", label: "My Resumes", icon: FileText },
+  { href: "/app/cover-letter", label: "Cover Letters", icon: Mail },
+  { href: "/app/upload", label: "Analyze Resume", icon: Upload },
 ];
 
 export default function AppSidebar({ user }: AppSidebarProps) {
@@ -57,7 +57,7 @@ export default function AppSidebar({ user }: AppSidebarProps) {
     >
       <div className="flex flex-col gap-8">
         {/* Brand */}
-        <Link href="/" className="flex items-center gap-3" aria-label="Home">
+        <Link href="/app" className="flex items-center gap-3" aria-label="Home">
           <img
             src="/favicon.ico"
             alt="Resumind"
@@ -96,7 +96,7 @@ export default function AppSidebar({ user }: AppSidebarProps) {
         <nav className="flex flex-col gap-1.5" aria-label="Main navigation">
           {navItems.map(({ href, label, icon: Icon }) => {
             const isActive =
-              href === "/" ? pathname === "/" : pathname.startsWith(href);
+              href === "/app" ? pathname === "/app" : pathname.startsWith(href);
 
             return (
               <Link

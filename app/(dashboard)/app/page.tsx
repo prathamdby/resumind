@@ -84,7 +84,7 @@ export default async function DashboardPage() {
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <Link href="/upload" className="primary-button">
+          <Link href="/app/upload" className="primary-button">
             Analyze a new resume
           </Link>
           {resumes.length > 0 && (
@@ -145,7 +145,7 @@ export default async function DashboardPage() {
               Drag in a PDF resume, share the role you are focused on, and
               Resumind will return actionable guidance within seconds.
             </p>
-            <Link href="/upload" className="primary-button px-5 py-3 text-sm">
+            <Link href="/app/upload" className="primary-button px-5 py-3 text-sm">
               Upload your first resume
             </Link>
           </div>

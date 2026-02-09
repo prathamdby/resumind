@@ -150,7 +150,7 @@ export default function CoverLetterEditor({
     try {
       await deleteCoverLetter(id);
       toast.success("Cover letter deleted");
-      router.push("/cover-letter");
+      router.push("/app/cover-letter");
     } catch {
       toast.error("Failed to delete");
     }
@@ -162,7 +162,7 @@ export default function CoverLetterEditor({
       <div className="sticky top-0 z-40 border-b border-white/60 bg-white/85 px-3 py-2.5 shadow-[0_4px_20px_-8px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:px-5 sm:py-3.5">
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0 flex items-center gap-2 sm:gap-4">
-            <Link href="/cover-letter" className="back-button shrink-0">
+            <Link href="/app/cover-letter" className="back-button shrink-0">
               <ArrowLeft className="h-4 w-4" />
               <span className="hidden sm:inline">Cover Letters</span>
             </Link>

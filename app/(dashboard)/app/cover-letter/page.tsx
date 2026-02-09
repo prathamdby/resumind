@@ -35,7 +35,7 @@ export default async function CoverLetterListPage() {
           </p>
         </div>
 
-        <Link href="/cover-letter/new" className="primary-button self-start">
+        <Link href="/app/cover-letter/new" className="primary-button self-start">
           <Plus className="h-4 w-4" />
           Create new
         </Link>
@@ -57,7 +57,7 @@ export default async function CoverLetterListPage() {
               role type.
             </p>
             <Link
-              href="/cover-letter/new"
+              href="/app/cover-letter/new"
               className="primary-button px-5 py-3 text-sm"
             >
               Create your first cover letter

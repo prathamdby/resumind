@@ -44,7 +44,7 @@ export default async function ResumePage({
   });
 
   if (!resume || resume.userId !== session.user.id) {
-    redirect("/");
+    redirect("/app");
   }
 
   const feedback = resume.feedback as unknown as Feedback;
@@ -52,7 +52,7 @@ export default async function ResumePage({
   return (
     <section className="page-shell gap-12">
       <header className="flex flex-col gap-6">
-        <Link href="/" className="back-button w-fit">
+        <Link href="/app" className="back-button w-fit">
           <img src="/icons/back.svg" alt="Back" className="h-3 w-3" />
           <span>Back to dashboard</span>
         </Link>

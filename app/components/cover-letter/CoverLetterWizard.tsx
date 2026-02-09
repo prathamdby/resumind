@@ -67,7 +67,7 @@ export default function CoverLetterWizard({
         },
       });
 
-      router.push(`/cover-letter/${result.id}`);
+      router.push(`/app/cover-letter/${result.id}`);
     } catch (error) {
       toast.error("Generation failed", {
         description:

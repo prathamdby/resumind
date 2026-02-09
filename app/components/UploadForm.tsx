@@ -225,7 +225,7 @@ export default function UploadForm() {
       );
 
       toast.success("Analysis complete!");
-      router.push(`/resume/${resumeId}`);
+      router.push(`/app/resume/${resumeId}`);
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Analysis failed";

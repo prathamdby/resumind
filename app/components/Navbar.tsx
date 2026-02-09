@@ -7,13 +7,13 @@ import UserMenu from "@/app/components/UserMenu";
 
 const Navbar = () => {
   const pathname = usePathname();
-  const isHome = pathname === "/";
-  const isCoverLetter = pathname.startsWith("/cover-letter");
+  const isHome = pathname === "/app";
+  const isCoverLetter = pathname.startsWith("/app/cover-letter");
 
   return (
     <header className="px-4 pt-4">
       <nav className="navbar" aria-label="Primary navigation">
-        <Link href="/" className="navbar__brand" aria-label="Resumind home">
+        <Link href="/app" className="navbar__brand" aria-label="Resumind home">
           <img
             src="/favicon.ico"
             alt="Resumind logo"
@@ -31,7 +31,7 @@ const Navbar = () => {
 
         <div className="navbar__links" role="navigation">
           <Link
-            href="/"
+            href="/app"
             className={cn(
               "rounded-full px-4 py-2 text-sm font-medium",
               isHome
@@ -42,7 +42,7 @@ const Navbar = () => {
             My Resumes
           </Link>
           <Link
-            href="/cover-letter"
+            href="/app/cover-letter"
             className={cn(
               "rounded-full px-4 py-2 text-sm font-medium",
               isCoverLetter
@@ -52,7 +52,7 @@ const Navbar = () => {
           >
             Cover Letters
           </Link>
-          <Link href="/upload" className="primary-button px-5 py-2.5 text-sm">
+          <Link href="/app/upload" className="primary-button px-5 py-2.5 text-sm">
             Analyze Resume
           </Link>
           <UserMenu />
@@ -60,7 +60,7 @@ const Navbar = () => {
 
         <div className="navbar__mobile gap-3">
           <Link
-            href="/upload"
+            href="/app/upload"
             className="primary-button px-5 py-2 text-sm"
             aria-label="Upload a resume"
           >

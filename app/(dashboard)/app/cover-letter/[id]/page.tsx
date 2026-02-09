@@ -19,7 +19,7 @@ export default async function CoverLetterEditorPage({
   });
 
   if (!coverLetter) {
-    redirect("/cover-letter");
+    redirect("/app/cover-letter");
   }
 
   const content = coverLetter.content as unknown as CoverLetterContent;
