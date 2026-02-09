@@ -73,7 +73,7 @@ const ResumeCard = React.memo(
           <X className="h-4 w-4" />
         </button>
         <Link
-          href={`/resume/${id}`}
+          href={`/app/resume/${id}`}
           className="group resume-card animate-in fade-in duration-700"
           aria-label={`View resume analysis for ${companyName || "this resume"}`}
         >

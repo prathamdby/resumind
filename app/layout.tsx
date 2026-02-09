@@ -4,6 +4,9 @@ import { Toaster } from "sonner";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL || "https://resumind.app",
+  ),
   title: "Resumind",
   description: "Get personalized feedback to land your dream job",
 };

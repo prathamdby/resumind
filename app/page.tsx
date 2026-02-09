@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   FileSearch,
@@ -19,6 +20,28 @@ import {
   Target,
 } from "lucide-react";
 import ScrollReveal from "@/app/components/ScrollReveal";
+
+export const metadata: Metadata = {
+  title: "Resumind — AI Resume Analyzer & Cover Letter Generator",
+  description:
+    "Get your resume scored across 5 dimensions, rewritten line-by-line, and optimized for ATS in under 60 seconds. Free AI-powered resume feedback.",
+  openGraph: {
+    title: "Resumind — AI Resume Analyzer & Cover Letter Generator",
+    description:
+      "Score, rewrite, and optimize your resume with AI. Land more interviews.",
+    url: "/",
+    siteName: "Resumind",
+    type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Resumind — AI Resume Analyzer",
+    description:
+      "Score, rewrite, and optimize your resume with AI. Land more interviews.",
+  },
+  alternates: { canonical: "/" },
+};
 
 function LandingNav() {
   return (
@@ -387,6 +410,7 @@ const features = [
     description:
       "Upload a PDF. Get scored across 5 dimensions in under 60 seconds. No templates, no fluff.",
     gradient: "from-indigo-500 to-blue-500",
+    href: "/resume-analyzer",
   },
   {
     icon: ScanSearch,
@@ -408,6 +432,7 @@ const features = [
     description:
       "Pick a tone. Import the job listing. Get a letter that sounds like you wrote it.",
     gradient: "from-amber-500 to-orange-500",
+    href: "/cover-letter-generator",
   },
   {
     icon: MessageSquare,
@@ -442,8 +467,8 @@ function FeaturesSection() {
       </ScrollReveal>
 
       <div className="bento-grid">
-        {features.map(({ icon: Icon, title, description, gradient }, i) => (
-          <ScrollReveal key={title} delay={i * 80}>
+        {features.map(({ icon: Icon, title, description, gradient, href }, i) => {
+          const card = (
             <div className="bento-cell h-full">
               <div
                 className={`flex h-11 w-11 items-center justify-center rounded-2xl bg-linear-to-br ${gradient} text-white shadow-sm`}
@@ -454,9 +479,26 @@ function FeaturesSection() {
               <p className="text-sm leading-relaxed text-slate-600">
                 {description}
               </p>
+              {href && (
+                <span className="mt-auto inline-flex items-center gap-1 text-xs font-medium text-indigo-500">
+                  Learn more <ArrowRight className="h-3 w-3" />
+                </span>
+              )}
             </div>
-          </ScrollReveal>
-        ))}
+          );
+
+          return (
+            <ScrollReveal key={title} delay={i * 80}>
+              {href ? (
+                <Link href={href} className="block h-full no-underline">
+                  {card}
+                </Link>
+              ) : (
+                card
+              )}
+            </ScrollReveal>
+          );
+        })}
       </div>
     </section>
   );
