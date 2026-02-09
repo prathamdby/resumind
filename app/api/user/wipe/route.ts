@@ -7,6 +7,9 @@ export async function DELETE() {
   try {
     return await withAuth(async ({ userId }) => {
       await prisma.$transaction([
+        prisma.coverLetter.deleteMany({
+          where: { userId },
+        }),
         prisma.resume.deleteMany({
           where: { userId },
         }),

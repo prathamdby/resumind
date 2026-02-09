@@ -5,6 +5,8 @@ export const RATE_LIMIT_CONFIG = {
   "/api/import-job": { window: 60, max: 5 },
   "/api/analyze": { window: 60, max: 2 },
   "/api/regenerate-cold-dm": { window: 60, max: 5 },
+  "/api/cover-letter/generate": { window: 60, max: 3 },
+  "/api/cover-letter/regenerate": { window: 60, max: 5 },
   default: { window: 60, max: 100 },
 } as const;
 

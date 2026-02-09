@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { cn } from "@/app/lib/utils";
-import { LogOut, FileText, Upload } from "lucide-react";
+import { LogOut, FileText, Upload, Mail } from "lucide-react";
 
 interface AppSidebarProps {
   user: {
@@ -26,6 +26,7 @@ function getInitials(name: string) {
 
 const navItems = [
   { href: "/", label: "My Resumes", icon: FileText },
+  { href: "/cover-letter", label: "Cover Letters", icon: Mail },
   { href: "/upload", label: "Analyze Resume", icon: Upload },
 ];
 

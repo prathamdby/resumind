@@ -1,3 +1,93 @@
+// Cover letter AI response format -- body only, NO header fields
+export const CoverLetterResponseFormat = `
+interface CoverLetterAIResponse {
+  recipientName: string;       // e.g. "Hiring Manager" or a specific name if provided
+  opening: string;             // 2-4 sentences, hook + why this role/company
+  bodyParagraphs: string[];    // 2-3 paragraphs, each 3-5 sentences; map resume to job requirements
+  closing: string;             // 1-2 sentences, confident close with soft CTA
+  signature: string;           // candidate's full name
+}`;
+
+export const prepareCoverLetterInstructions = ({
+  jobTitle,
+  companyName,
+  jobDescription,
+  templateTone,
+  resumeMarkdown,
+}: {
+  jobTitle: string;
+  companyName?: string;
+  jobDescription?: string;
+  templateTone: string;
+  resumeMarkdown?: string;
+}) => {
+  const hasResume = Boolean(resumeMarkdown?.trim());
+
+  return `TASK: Write a cover letter body for the following job application.
+
+Job Title: ${jobTitle}
+${companyName ? `Company: ${companyName}` : ""}
+${jobDescription ? `Job Description:\n${jobDescription}` : "No job description provided. Write a general-purpose cover letter for this role."}
+
+TONE INSTRUCTIONS: ${templateTone}
+
+${hasResume ? `CANDIDATE RESUME:\n${resumeMarkdown}\n\nUse specific details, skills, and experience from this resume. Never invent achievements or metrics not present in the resume.` : "No resume provided. Write plausible but clearly generic content. Use [TODO: add specific detail] markers where the candidate should fill in their own experience."}
+
+STRUCTURE:
+- recipientName: "${companyName ? "Hiring Manager" : "Hiring Manager"}" unless a specific name is known
+- opening: 2-4 sentences. Hook the reader immediately. Connect the candidate to the role. ${companyName ? `Reference ${companyName} naturally.` : ""}
+- bodyParagraphs: 2-3 paragraphs. Each 3-5 sentences. Map the candidate's strongest qualifications to the job requirements. Be specific, not generic.
+- closing: 1-2 sentences. Confident close with a soft call to action (e.g., "looking forward to discussing how..." not "please find attached").
+- signature: The candidate's full name.
+
+WORD LIMIT: Total letter body under 350 words.
+
+BANNED PHRASES: "I am writing to express", "I would love the opportunity", "I am confident that", "please find attached", "I believe I would be a great fit", "thank you for your consideration"
+
+STYLE + HUMAN-WRITING RULES:
+- Systematically replace em-dashes ("—") with a dot (".") to start a new sentence, or a comma (",") to continue the sentence.
+- Never use em-dashes in the final output.
+- Avoid semicolons unless absolutely required for clarity.
+- Vary sentence openings. Do not begin multiple consecutive sentences with the same word pattern.
+- Mix sentence lengths naturally. Include short punchy lines and longer explanatory lines.
+- Avoid list-like rhythm in paragraphs (no repetitive three-part sentence templates).
+- Avoid hedging language: "I think", "I feel", "I believe", "I would like to", "I am excited to".
+- Avoid inflated adjectives and buzzwords: "passionate", "dynamic", "synergy", "results-driven", "go-getter", "innovative thinker".
+- Do not repeat the company name in every paragraph. Mention it once or twice max unless context requires more.
+- Ground every claim in concrete work, outcomes, tools, scope, or responsibilities.
+- No generic filler transitions like "Additionally", "Furthermore", "Moreover" at the start of multiple sentences.
+- No meta narration about writing a cover letter.
+- Never use placeholder brackets, fake metrics, or made-up proper nouns.
+- Keep wording direct and specific enough that each sentence could be traced to real experience or job requirements.
+
+Return ONLY valid JSON matching this structure: ${CoverLetterResponseFormat}
+Return ONLY valid JSON, no markdown formatting or code blocks.`;
+};
+
+export const getCoverLetterSystemPrompt = () => {
+  return `You are an expert cover letter writer who creates compelling, natural-sounding letters that get interviews. You write like a skilled human communicator, not a template engine.
+
+Your approach:
+1. Read the job requirements carefully to identify what matters most
+2. Map the candidate's experience to those requirements with specific examples
+3. Write in a voice that matches the requested tone while staying authentic
+4. Keep it concise -- hiring managers skim, so every sentence must earn its place
+
+Hard constraints to avoid AI giveaways:
+- Systematically replace em-dashes ("—") with a dot (".") to start a new sentence, or a comma (",") to continue the sentence.
+- Never output em-dashes.
+- Avoid repetitive sentence scaffolding and repeated openers.
+- Avoid corporate cliches, motivational fluff, and abstract claims without evidence.
+- Prefer concrete nouns, verbs, and role-specific details over generic adjectives.
+- Keep transitions natural and minimal. Do not overuse connector adverbs.
+- Maintain a believable human cadence with controlled variation in sentence length.
+- Eliminate boilerplate cover-letter phrases unless explicitly requested.
+- Do not sound like a template. Each paragraph must contain role-specific substance.
+
+Return ONLY valid JSON matching the requested structure. No markdown, no code blocks, no explanatory text.`;
+};
+
+// Resume analysis AI response format
 export const AIResponseFormat = `
         interface Feedback {
         overallScore: number; //max 100

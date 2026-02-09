@@ -78,3 +78,63 @@ export interface Resume {
   feedback: Feedback | null;
   previewImage?: string;
 }
+
+export interface CoverLetterContent {
+  header: {
+    fullName: string;
+    title: string;
+    email: string;
+    phone: string;
+    location: string;
+    linkedin?: string;
+  };
+  date: string;
+  recipientName: string;
+  opening: string;
+  bodyParagraphs: string[];
+  closing: string;
+  signature: string;
+}
+
+export interface CoverLetterAIResponse {
+  recipientName: string;
+  opening: string;
+  bodyParagraphs: string[];
+  closing: string;
+  signature: string;
+}
+
+export type CoverLetterTemplateCategory =
+  | "professional"
+  | "creative"
+  | "technical"
+  | "executive"
+  | "entry-level"
+  | "startup";
+
+export type AccentBarVariant = "top-bar" | "left-bar" | "underline";
+
+export interface CoverLetterTemplate {
+  id: string;
+  name: string;
+  description: string;
+  category: CoverLetterTemplateCategory;
+  tone: string;
+  accentColor: string;
+  accentGradient: string;
+  headerLayout: "horizontal" | "stacked";
+  fontWeight: "normal" | "bold";
+  accentBarVariant: AccentBarVariant;
+}
+
+export interface CoverLetter {
+  id: string;
+  templateId: string;
+  jobTitle: string;
+  companyName?: string;
+  jobDescription?: string;
+  content: CoverLetterContent;
+  resumeId?: string;
+  createdAt: string;
+  updatedAt: string;
+}

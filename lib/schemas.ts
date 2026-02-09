@@ -37,6 +37,35 @@ const LineImprovementSchema = z.object({
   category: z.enum(["quantify", "action-verb", "keyword", "clarity", "ats"]),
 });
 
+// Cover letter schemas -- AI output vs full persisted content
+
+export const CoverLetterAISchema = z.object({
+  recipientName: z.string().min(1).max(200),
+  opening: z.string().min(20).max(600),
+  bodyParagraphs: z.array(z.string().min(20).max(1000)).min(2).max(4),
+  closing: z.string().min(10).max(400),
+  signature: z.string().min(1).max(200),
+});
+
+export const CoverLetterContentSchema = z.object({
+  header: z.object({
+    fullName: z.string().min(1).max(200),
+    title: z.string().min(1).max(300),
+    email: z.string().email(),
+    phone: z.string().min(1).max(50),
+    location: z.string().min(1).max(200),
+    linkedin: z.string().max(500).optional(),
+  }),
+  date: z.string().min(1),
+  recipientName: z.string().min(1).max(200),
+  opening: z.string().min(1).max(600),
+  bodyParagraphs: z.array(z.string().min(1).max(1000)).min(1).max(4),
+  closing: z.string().min(1).max(400),
+  signature: z.string().min(1).max(200),
+});
+
+// Resume feedback schemas
+
 export const FeedbackSchema = z.object({
   overallScore: z.number().min(0).max(100),
   ATS: z.object({
