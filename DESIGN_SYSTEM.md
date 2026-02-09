@@ -175,6 +175,34 @@ grid-rows-[1fr] opacity-100 (active)
 grid-rows-[0fr] opacity-0 (inactive)
 ```
 
+**Organic Blob Animation (Auth Page):**
+
+```css
+/* Slow morphing blobs -- transform + border-radius only (GPU-composited) */
+@keyframes blobMorph1 {
+  0%, 100% { border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%; transform: translate(0, 0) scale(1); }
+  25%      { border-radius: 70% 30% 50% 50% / 30% 60% 40% 70%; transform: translate(5%, -8%) scale(1.05); }
+  50%      { border-radius: 30% 70% 40% 60% / 55% 30% 70% 45%; transform: translate(-3%, 6%) scale(0.97); }
+  75%      { border-radius: 55% 45% 60% 40% / 40% 70% 30% 60%; transform: translate(4%, 3%) scale(1.03); }
+}
+/* blobMorph2: 22s, blobMorph3: 25s -- see globals.css for full definitions */
+```
+
+- Cycle durations: 18s, 22s, 25s (staggered to avoid sync)
+- Use `will-change: transform, border-radius` on blob elements
+- Position blobs with percentage-based `top`/`left`/`right`/`bottom` and percentage widths/heights
+- Blobs use `radial-gradient` fills, not solid colors
+
+**Entrance Animation:**
+
+```css
+@keyframes authFadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+/* Usage: animation: authFadeUp 600ms ease-out both; animation-delay: 150ms; */
+```
+
 **Guidelines:**
 
 - Use CSS transitions, not JavaScript animations
@@ -182,6 +210,7 @@ grid-rows-[0fr] opacity-0 (inactive)
 - Subtle elevation changes on hover
 - Smooth accordion expand/collapse
 - Avoid bouncy or aggressive motion
+- Long-running ambient animations (blobs): 15-25s cycles, `ease-in-out`, infinite
 
 **Never use:**
 
@@ -274,7 +303,7 @@ Generous spacing with clear hierarchy.
 
 **When in doubt:**
 
-- Reference existing components (`ResumeCard`, `Navbar`, `UploadForm`)
+- Reference existing components (`ResumeCard`, `Navbar`, `UploadForm`, `AuthForm`, `AuthHeroPanel`)
 - Use established CSS variables and utility classes
 - Maintain the glassmorphic aesthetic
 - Keep motion subtle and purposeful
@@ -317,9 +346,60 @@ Before finalizing any design:
 
 **Auth (`/auth`):**
 
-- Centered, minimal layout
-- Hero decor background
-- Google OAuth button (glassmorphic style)
+Two-column split layout with an immersive gradient hero panel and a glassmorphic sign-in panel.
+
+*Layout:*
+
+- Grid: `lg:grid-cols-2`, stacks vertically below `lg`
+- Hero panel fills left column (100vh on desktop, 40vh tablet, 30vh mobile)
+- Auth panel fills right column, vertically/horizontally centered content
+- Card container: `max-w-md`, uses `surface-card` pattern with `bg-white/80`
+
+*Left Panel (Gradient Hero):*
+
+- Deep indigo base: `linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #3730a3 100%)`
+- Three animated organic blobs using CSS `@keyframes` morphing:
+  - Indigo blob: `rgba(111, 122, 255, 0.55)`, 18s cycle (`blobMorph1`)
+  - Pink blob: `rgba(250, 113, 133, 0.45)`, 22s cycle (`blobMorph2`)
+  - Peach blob: `rgba(251, 191, 146, 0.4)`, 25s cycle (`blobMorph3`)
+- Animations use `transform` + `border-radius` only (GPU-composited, no layout thrashing)
+- Noise texture overlay via inline SVG data URI (`mix-blend-mode: overlay`, `opacity: 0.35`)
+- Typography: Mona Sans `text-4xl`/`text-5xl`/`text-6xl`, `font-bold`, white, `text-shadow` for depth
+- Brand mark: `border-white/30`, `bg-white/10`, `backdrop-blur-sm` circle
+- Footer text: `text-indigo-300/70`, hidden below `lg`
+- Entire panel is `aria-hidden="true"` (decorative)
+
+*Right Panel (Auth Form):*
+
+- Subtle radial gradient background (indigo 8% + pink 6%) for depth
+- Entrance animation: `authFadeUp` 600ms ease-out with 150ms delay
+- Card: `rounded-[var(--radius-card)]`, `border-white/40`, `bg-white/80`, `backdrop-blur-md`, `shadow-[var(--shadow-surface)]`
+- Brand mark: gradient circle (`from-indigo-500 to-purple-600`) with white border and indigo shadow
+- Google OAuth button: `rounded-full`, `border-indigo-100/60`, hover lift (`-translate-y-0.5`) with indigo shadow transition
+- Divider: horizontal rules flanking "secure sign-in" text (`bg-slate-200/70`)
+- Terms text: `text-xs`, `text-slate-400`
+
+*CSS Classes (BEM):*
+
+- `.auth-layout` -- grid container
+- `.auth-hero` -- left gradient panel
+- `.auth-hero__blob--{indigo,pink,peach}` -- animated organic shapes
+- `.auth-hero__noise` -- texture overlay
+- `.auth-hero__content` -- headline + subtitle wrapper
+- `.auth-hero__brand` / `.auth-hero__brand-mark` -- top-left logo
+- `.auth-hero__footer` -- bottom text (desktop only)
+- `.auth-panel` -- right panel container
+- `.auth-panel__inner` -- max-width wrapper with fade-up animation
+- `.auth-panel__card` -- glassmorphic card
+- `.auth-panel__google-btn` -- styled OAuth button
+- `.auth-panel__divider` -- line + text + line separator
+
+*Key constraints:*
+
+- No new fonts or dependencies (pure CSS animations)
+- `group` cannot be used in `@apply` (Tailwind v4 restriction); add it as a className in JSX instead
+- Server/client boundary: hero panel is a server component (pure HTML/CSS), form is `"use client"`
+- All blob animations use `will-change: transform, border-radius` for performance
 
 ## Implementation Notes
 
