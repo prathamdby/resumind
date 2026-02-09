@@ -211,15 +211,15 @@
   }
 
   .preview-rail {
-    @apply sticky top-[110px] flex h-[calc(100vh-150px)] flex-col gap-6 px-2 pb-6 sm:px-4;
+    @apply sticky top-6 flex flex-col gap-6 px-2 pb-6 sm:px-4;
   }
 
   .preview-rail__card {
-    @apply flex h-full flex-col gap-5 overflow-hidden;
+    @apply flex flex-col gap-5;
   }
 
   .preview-rail__frame {
-    @apply flex-1 overflow-hidden rounded-[var(--radius-card)] bg-white;
+    @apply aspect-[17/22] overflow-hidden rounded-[var(--radius-card)] bg-white;
   }
 
   .section-panel {

@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev",
+    "dev": "bunx @react-grab/cursor@latest && next dev",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
@@ -39,6 +39,7 @@
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "prisma": "^6.19.0",
+    "react-grab": "^0.1.13",
     "tailwindcss": "^4.1.4",
     "tw-animate-css": "^1.3.7",
     "typescript": "^5.8.3"
