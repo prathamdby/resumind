@@ -3,6 +3,8 @@ import Navbar from "@/app/components/Navbar";
 import AppSidebar from "@/app/components/AppSidebar";
 import { getServerSession } from "@/lib/auth-server";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardLayout({
   children,
 }: {
