@@ -91,3 +91,25 @@ export const FeedbackSchema = z.object({
   lineImprovements: z.array(LineImprovementSchema).min(8).max(15),
   coldOutreachMessage: z.string().min(50).max(500).optional(),
 });
+
+// Outreach schemas
+
+export const OutreachGenerateSchema = z.object({
+  channel: z.enum(["linkedin-dm", "cold-email", "networking", "follow-up"]),
+  tone: z.enum(["bold", "warm", "professional", "curious"]),
+  jobTitle: z.string().min(1).max(300),
+  companyName: z.string().max(200).optional(),
+  recipientName: z.string().max(200).optional(),
+  jobDescription: z.string().max(50000).optional(),
+  resumeId: z.string().optional(),
+  additionalContext: z.string().max(1000).optional(),
+});
+
+export const OutreachRegenerateSchema = z.object({
+  userFeedback: z.string().trim().min(10).max(500),
+});
+
+export const OutreachEmailResponseSchema = z.object({
+  subject: z.string().min(1).max(200),
+  body: z.string().min(50).max(2000),
+});

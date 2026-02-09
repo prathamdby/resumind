@@ -18,6 +18,8 @@ import {
   ArrowRight,
   Users,
   Target,
+  Send,
+  Reply,
 } from "lucide-react";
 import ScrollReveal from "@/app/components/ScrollReveal";
 
@@ -440,6 +442,7 @@ const features = [
     description:
       "LinkedIn messages built from your actual resume. Specific. Grounded. Not cringe.",
     gradient: "from-emerald-500 to-teal-500",
+    href: "/cold-outreach",
   },
   {
     icon: LinkIcon,
@@ -886,6 +889,120 @@ function ShowcaseCoverLetters() {
   );
 }
 
+function ShowcaseOutreach() {
+  return (
+    <ScrollReveal>
+      <div className="landing-section py-16! sm:py-20!">
+        <div className="grid w-full items-center gap-10 text-left lg:grid-cols-2 lg:gap-16">
+          <div className="order-2 lg:order-1">
+            <div className="mockup-frame">
+              <div className="mockup-chrome">
+                <div className="mockup-dot bg-rose-300" />
+                <div className="mockup-dot bg-amber-300" />
+                <div className="mockup-dot bg-emerald-300" />
+                <div className="ml-3 flex-1 rounded-full bg-slate-100 py-2" />
+              </div>
+              <div className="space-y-4 p-5 sm:p-6">
+                {/* Channel badges */}
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    {
+                      icon: MessageSquare,
+                      name: "LinkedIn DM",
+                      color: "bg-sky-50 text-sky-600 border-sky-100",
+                      active: true,
+                    },
+                    {
+                      icon: Mail,
+                      name: "Cold Email",
+                      color: "bg-slate-50 text-slate-500 border-slate-100",
+                      active: false,
+                    },
+                    {
+                      icon: Users,
+                      name: "Networking",
+                      color: "bg-slate-50 text-slate-500 border-slate-100",
+                      active: false,
+                    },
+                    {
+                      icon: Reply,
+                      name: "Follow-Up",
+                      color: "bg-slate-50 text-slate-500 border-slate-100",
+                      active: false,
+                    },
+                  ].map(({ icon: ChIcon, name, color, active }) => (
+                    <span
+                      key={name}
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium ${color} ${active ? "ring-1 ring-sky-200" : ""}`}
+                    >
+                      <ChIcon className="h-3 w-3" />
+                      {name}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Mock message */}
+                <div className="rounded-xl border border-slate-100 bg-gradient-to-br from-sky-50/40 to-white p-4">
+                  <div className="space-y-2 text-xs leading-relaxed text-slate-700">
+                    <p>Hi Sarah,</p>
+                    <p>
+                      Your team&apos;s work on the recommendation engine caught
+                      my eye. I built a similar system at my last role that cut
+                      latency by 40% while handling 2M daily requests.
+                    </p>
+                    <p>
+                      Would love to chat for 10 minutes about the Senior
+                      Backend role. Free this Thursday?
+                    </p>
+                  </div>
+                </div>
+
+                {/* Tone pills */}
+                <div className="flex flex-wrap gap-2">
+                  <span className="rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-[10px] font-medium text-indigo-600">
+                    Bold and Direct
+                  </span>
+                  <span className="rounded-full border border-slate-100 bg-white px-3 py-1 text-[10px] font-medium text-slate-500">
+                    Warm
+                  </span>
+                  <span className="rounded-full border border-slate-100 bg-white px-3 py-1 text-[10px] font-medium text-slate-500">
+                    Professional
+                  </span>
+                  <span className="rounded-full border border-slate-100 bg-white px-3 py-1 text-[10px] font-medium text-slate-500">
+                    Curious
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="order-1 flex flex-col gap-5 lg:order-2">
+            <div className="landing-eyebrow w-fit">
+              <Send className="mr-2 h-3.5 w-3.5" />
+              Cold Outreach
+            </div>
+            <h2 className="text-3xl font-bold text-slate-900 sm:text-4xl">
+              Messages that get replies
+            </h2>
+            <p className="text-lg leading-relaxed text-slate-600">
+              LinkedIn DMs, cold emails, networking requests, and follow-ups.
+              Each grounded in your resume. Each tuned to your chosen tone. Zero
+              AI slop.
+            </p>
+            <Link
+              href="/auth"
+              className="primary-button mt-2 w-fit px-6 py-3 text-sm"
+            >
+              Compose a message
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    </ScrollReveal>
+  );
+}
+
 const impactStats = [
   { value: "<60s", label: "Average analysis time" },
   { value: "8\u201312", label: "Rewrites per resume" },
@@ -1144,6 +1261,7 @@ export default function LandingPage() {
       <ShowcaseScoreDashboard />
       <ShowcaseDiffView />
       <ShowcaseCoverLetters />
+      <ShowcaseOutreach />
       <StatsBand />
       <Testimonials />
       <FAQ />

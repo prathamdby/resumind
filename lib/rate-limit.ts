@@ -7,6 +7,8 @@ export const RATE_LIMIT_CONFIG = {
   "/api/regenerate-cold-dm": { window: 60, max: 5 },
   "/api/cover-letter/generate": { window: 60, max: 3 },
   "/api/cover-letter/regenerate": { window: 60, max: 5 },
+  "/api/outreach/generate": { window: 60, max: 5 },
+  "/api/outreach/regenerate": { window: 60, max: 5 },
   default: { window: 60, max: 100 },
 } as const;
 

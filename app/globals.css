@@ -623,6 +623,31 @@
   }
 }
 
+/* Channel card selection (outreach wizard) */
+.channel-card {
+  @apply relative cursor-pointer rounded-[var(--radius-card)] border border-white/40 bg-white/90 p-5 backdrop-blur transition-all duration-200 ease-out;
+}
+.channel-card:hover {
+  @apply -translate-y-0.5 shadow-lg;
+}
+.channel-card[aria-checked="true"] {
+  @apply border-indigo-300 bg-indigo-50/30;
+  box-shadow:
+    0 0 0 1px rgba(79, 70, 229, 0.35),
+    var(--shadow-surface);
+}
+
+/* Tone pill selection (outreach wizard) */
+.tone-pill {
+  @apply cursor-pointer rounded-full border border-white/50 bg-white/80 px-4 py-2 text-sm font-medium text-slate-600 backdrop-blur transition-all duration-200;
+}
+.tone-pill:hover {
+  @apply border-slate-200 bg-white text-slate-800;
+}
+.tone-pill[aria-checked="true"] {
+  @apply border-indigo-300 bg-indigo-50 text-indigo-700;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

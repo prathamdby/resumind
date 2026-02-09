@@ -1,4 +1,9 @@
-import type { Feedback, CoverLetterContent } from "@/types";
+import type {
+  Feedback,
+  CoverLetterContent,
+  OutreachChannel,
+  OutreachTone,
+} from "@/types";
 
 export async function analyzeResume(
   file: File,
@@ -149,4 +154,62 @@ export async function deleteCoverLetter(id: string): Promise<void> {
   if (!response.ok || !result.success) {
     throw new Error(result.error || "Failed to delete cover letter");
   }
+}
+
+// Outreach API
+
+export async function generateOutreach(params: {
+  channel: OutreachChannel;
+  tone: OutreachTone;
+  jobTitle: string;
+  companyName?: string;
+  recipientName?: string;
+  jobDescription?: string;
+  resumeId?: string;
+  additionalContext?: string;
+}): Promise<{ id: string }> {
+  const response = await fetch("/api/outreach/generate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(params),
+  });
+
+  const result = await response.json();
+
+  if (!response.ok || !result.success) {
+    throw new Error(result.error || "Failed to generate outreach message");
+  }
+
+  return { id: result.id };
+}
+
+export async function deleteOutreach(id: string): Promise<void> {
+  const response = await fetch(`/api/outreach/${id}`, {
+    method: "DELETE",
+  });
+
+  const result = await response.json();
+
+  if (!response.ok || !result.success) {
+    throw new Error(result.error || "Failed to delete outreach message");
+  }
+}
+
+export async function regenerateOutreach(
+  id: string,
+  userFeedback: string,
+): Promise<{ content: string; subject?: string }> {
+  const response = await fetch(`/api/outreach/${id}/regenerate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userFeedback }),
+  });
+
+  const result = await response.json();
+
+  if (!response.ok || !result.success) {
+    throw new Error(result.error || "Failed to regenerate outreach message");
+  }
+
+  return { content: result.content, subject: result.subject };
 }

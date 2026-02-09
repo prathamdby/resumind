@@ -138,3 +138,50 @@ export interface CoverLetter {
   createdAt: string;
   updatedAt: string;
 }
+
+// Outreach types
+
+export type OutreachChannel =
+  | "linkedin-dm"
+  | "cold-email"
+  | "networking"
+  | "follow-up";
+
+export type OutreachTone = "bold" | "warm" | "professional" | "curious";
+
+export interface OutreachChannelConfig {
+  id: OutreachChannel;
+  name: string;
+  description: string;
+  wordRange: string;
+  accentColor: string;
+}
+
+export interface OutreachToneConfig {
+  id: OutreachTone;
+  name: string;
+  description: string;
+  directive: string;
+}
+
+export interface OutreachGenerationContext {
+  channel: OutreachChannel;
+  tone: OutreachTone;
+  jobDescription?: string;
+  additionalContext?: string;
+  resumeMarkdown?: string;
+}
+
+export interface Outreach {
+  id: string;
+  channel: OutreachChannel;
+  tone: OutreachTone;
+  jobTitle: string;
+  companyName?: string;
+  recipientName?: string;
+  subject?: string;
+  content: string;
+  resumeId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
