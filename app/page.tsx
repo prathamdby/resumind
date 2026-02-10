@@ -942,7 +942,7 @@ function ShowcaseOutreach() {
                 </div>
 
                 {/* Mock message */}
-                <div className="rounded-xl border border-slate-100 bg-gradient-to-br from-sky-50/40 to-white p-4">
+                <div className="rounded-xl border border-slate-100 bg-linear-to-br from-sky-50/40 to-white p-4">
                   <div className="space-y-2 text-xs leading-relaxed text-slate-700">
                     <p>Hi Sarah,</p>
                     <p>
@@ -1055,6 +1055,13 @@ const testimonials = [
     title: "Marketing Manager",
     initials: "RP",
   },
+  {
+    quote:
+      "The outreach tool wrote a LinkedIn DM that got a reply from a VP of Engineering within two hours. It pulled metrics straight from my resume that I wouldn\u2019t have thought to include.",
+    name: "J. Torres",
+    title: "Backend Developer",
+    initials: "JT",
+  },
 ];
 
 function Testimonials() {
@@ -1070,7 +1077,7 @@ function Testimonials() {
         </h2>
       </ScrollReveal>
 
-      <div className="grid w-full gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid w-full gap-6 sm:grid-cols-2 xl:grid-cols-4">
         {testimonials.map(({ quote, name, title, initials }, i) => (
           <ScrollReveal key={name} delay={i * 100}>
             <div className="testimonial-card h-full">
@@ -1127,6 +1134,11 @@ const faqItems = [
     question: "Is there a limit on analyses?",
     answer:
       "Rate limits exist to maintain quality \u2014 2 analyses per minute. There\u2019s no hard cap on total usage. Analyze as many resumes as you need.",
+  },
+  {
+    question: "How does cold outreach generation work?",
+    answer:
+      "Pick a channel (LinkedIn DM, cold email, networking request, or follow-up) and a tone (bold, warm, professional, or curious). Add job details and optionally link your resume. The AI generates a message grounded in your actual experience with no invented claims. Regenerate with feedback until it\u2019s ready to send.",
   },
 ];
 

@@ -7,12 +7,17 @@ import {
   ChevronDown,
   Sparkles,
   MessageSquare,
+  MessageSquareText,
   Mail,
   Users,
   Reply,
   Zap,
   Target,
   Copy,
+  Palette,
+  RefreshCw,
+  Briefcase,
+  UserRound,
 } from "lucide-react";
 import ScrollReveal from "@/app/components/ScrollReveal";
 
@@ -105,6 +110,21 @@ const faqItems = [
     answer:
       "Most messages generate in 5-10 seconds. Pick a channel and tone, add job details, and the AI produces a ready-to-send message tailored to your target role.",
   },
+  {
+    question: "What makes the 4x4 channel and tone matrix useful?",
+    answer:
+      "Four channels multiplied by four tones gives you 16 distinct message styles. A Bold LinkedIn DM reads completely differently from a Curious Networking Request. Each combination has its own AI directive, word range, and formatting rules so the output matches the context.",
+  },
+  {
+    question: "How does regeneration with feedback work?",
+    answer:
+      "After the first generation, click the refresh icon and describe what you want changed in plain English. The AI receives your feedback alongside the original context (job details, resume, channel, tone) and produces a revised message. You can regenerate as many times as you need.",
+  },
+  {
+    question: "Can I use this for recruiting or sales outreach?",
+    answer:
+      "The tool is designed for job seekers reaching out to hiring managers, recruiters, and professional contacts. It could technically produce messages for other contexts, but the prompts are optimized for job-search scenarios and the tone options reflect that.",
+  },
 ];
 
 const faqJsonLd = {
@@ -154,6 +174,41 @@ const channels = [
   },
 ];
 
+const tones = [
+  {
+    name: "Bold and Direct",
+    description:
+      "Confident opener. Skip pleasantries. Lead with your strongest value proposition immediately.",
+    example:
+      "\"Your team shipped 3 features in Q4 that mirror what I built at Stripe. Let me show you the throughput numbers.\"",
+    accent: "#e11d48",
+  },
+  {
+    name: "Warm and Conversational",
+    description:
+      "Friendly, genuine curiosity about the recipient's work. Natural language, like talking to a colleague you respect.",
+    example:
+      "\"I came across your talk on event-driven architecture and it clicked with a problem I solved last quarter.\"",
+    accent: "#f59e0b",
+  },
+  {
+    name: "Professional and Polished",
+    description:
+      "Structured, measured tone. Formal enough for C-suite but not robotic. Every sentence serves a purpose.",
+    example:
+      "\"I noticed the Senior Backend opening on your careers page. My work at Scale AI on low-latency pipelines maps directly to the role requirements.\"",
+    accent: "#4c57e9",
+  },
+  {
+    name: "Curious and Humble",
+    description:
+      "Question-led, learning mindset. Show humility about what you don't know while grounding claims in real experience.",
+    example:
+      "\"I have been studying your approach to ML inference. What drove the decision to move off Kubernetes?\"",
+    accent: "#10b981",
+  },
+];
+
 const processSteps = [
   {
     number: "01",
@@ -185,6 +240,27 @@ const processSteps = [
   },
 ];
 
+const personas = [
+  {
+    icon: Briefcase,
+    title: "Active Job Seekers",
+    description:
+      "Sending 20+ applications a week? Generate personalized messages at scale without losing the human touch that gets responses.",
+  },
+  {
+    icon: RefreshCw,
+    title: "Career Changers",
+    description:
+      "Networking your way into a new field? The Curious and Warm tones help you ask smart questions and build genuine connections.",
+  },
+  {
+    icon: UserRound,
+    title: "Senior Professionals",
+    description:
+      "Reaching out to CTOs and VPs? Professional and Bold tones calibrate the right level of confidence for executive-level outreach.",
+  },
+];
+
 /* ─── Section Components ─── */
 
 function FeatureNav() {
@@ -209,6 +285,12 @@ function FeatureNav() {
             className="rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:text-slate-900"
           >
             Channels
+          </a>
+          <a
+            href="#tones"
+            className="rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:text-slate-900"
+          >
+            Tones
           </a>
           <a
             href="#how"
@@ -311,6 +393,46 @@ function OutreachHero() {
   );
 }
 
+function WhatYouGet() {
+  return (
+    <section className="landing-section">
+      <ScrollReveal className="mx-auto max-w-3xl space-y-6 text-left">
+        <h2 className="text-3xl font-bold text-slate-900 sm:text-4xl">
+          What you get
+        </h2>
+        <div className="space-y-4 text-base leading-relaxed text-slate-600 sm:text-lg">
+          <p>
+            Each generated message is purpose-built for its channel. LinkedIn
+            DMs stay under 100 words with a hook-value-ask structure. Cold
+            emails ship with a 6-word subject line and a single CTA.
+            Networking requests lead with a specific ask. Follow-ups add new
+            information to re-engage.
+          </p>
+          <p>
+            Every claim in the message comes directly from your resume. The
+            AI never invents achievements, inflates metrics, or fabricates
+            role-specific details. If you managed a team of 8, the message
+            says 8, not &ldquo;a large cross-functional team.&rdquo;
+          </p>
+          <p>
+            The output avoids em-dashes, repetitive openers, corporate
+            cliches, and the kind of motivational filler that screams
+            automated. Recipients see specific, grounded writing that reads
+            like a person wrote it, because a person&apos;s real experience
+            shaped every line.
+          </p>
+          <p>
+            After generation, copy the message directly or regenerate with
+            natural-language feedback. Tell the AI to &ldquo;make it shorter&rdquo; or
+            &ldquo;emphasize backend experience&rdquo; and it revises while
+            preserving your original context.
+          </p>
+        </div>
+      </ScrollReveal>
+    </section>
+  );
+}
+
 function ChannelShowcase() {
   return (
     <section id="channels" className="landing-section">
@@ -329,26 +451,74 @@ function ChannelShowcase() {
       </ScrollReveal>
 
       <div className="bento-grid">
-        {channels.map(({ icon: Icon, name, wordRange, accent, description }, i) => (
+        {channels.map(
+          ({ icon: Icon, name, wordRange, accent, description }, i) => (
+            <ScrollReveal key={name} delay={i * 80}>
+              <div className="bento-cell h-full">
+                <div
+                  className="flex h-11 w-11 items-center justify-center rounded-2xl text-white shadow-sm"
+                  style={{ background: accent }}
+                >
+                  <Icon className="h-5 w-5" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-slate-900">
+                    {name}
+                  </h3>
+                  <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500">
+                    {wordRange}
+                  </span>
+                </div>
+                <p className="text-sm leading-relaxed text-slate-600">
+                  {description}
+                </p>
+              </div>
+            </ScrollReveal>
+          ),
+        )}
+      </div>
+    </section>
+  );
+}
+
+function ToneShowcase() {
+  return (
+    <section id="tones" className="landing-section">
+      <ScrollReveal className="flex flex-col items-center gap-4">
+        <div className="landing-eyebrow">
+          <Palette className="mr-2 h-3.5 w-3.5" />
+          4 Writing Styles
+        </div>
+        <h2 className="text-balance text-3xl font-bold text-slate-900 sm:text-4xl lg:text-5xl">
+          Same message. Completely different voice.
+        </h2>
+        <p className="max-w-xl text-lg text-slate-600">
+          Each tone rewires the AI&apos;s sentence structure, vocabulary, and
+          opening strategy. Pick the one that fits the recipient.
+        </p>
+      </ScrollReveal>
+
+      <div className="grid w-full gap-5 sm:grid-cols-2">
+        {tones.map(({ name, description, example, accent }, i) => (
           <ScrollReveal key={name} delay={i * 80}>
             <div className="bento-cell h-full">
-              <div
-                className="flex h-11 w-11 items-center justify-center rounded-2xl text-white shadow-sm"
-                style={{ background: accent }}
-              >
-                <Icon className="h-5 w-5" />
-              </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
+                <div
+                  className="h-3 w-3 shrink-0 rounded-full"
+                  style={{ background: accent }}
+                />
                 <h3 className="text-lg font-semibold text-slate-900">
                   {name}
                 </h3>
-                <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500">
-                  {wordRange}
-                </span>
               </div>
               <p className="text-sm leading-relaxed text-slate-600">
                 {description}
               </p>
+              <div className="rounded-xl border border-slate-100 bg-linear-to-br from-slate-50/60 to-white px-4 py-3">
+                <p className="text-xs italic leading-relaxed text-slate-500">
+                  {example}
+                </p>
+              </div>
             </div>
           </ScrollReveal>
         ))}
@@ -438,7 +608,7 @@ function MockupSection() {
                   Bold and Direct
                 </span>
               </div>
-              <div className="rounded-xl border border-slate-100 bg-gradient-to-br from-sky-50/40 to-white p-4">
+              <div className="rounded-xl border border-slate-100 bg-linear-to-br from-sky-50/40 to-white p-4">
                 <div className="space-y-2.5 text-xs leading-relaxed text-slate-700">
                   <p>Hi,</p>
                   <p>
@@ -467,12 +637,140 @@ function MockupSection() {
   );
 }
 
+function RegenerationShowcase() {
+  return (
+    <ScrollReveal>
+      <div className="landing-section py-16! sm:py-20!">
+        <div className="grid w-full items-center gap-10 text-left lg:grid-cols-2 lg:gap-16">
+          {/* Mockup first on desktop (order-2 text, order-1 mockup) */}
+          <div className="order-2 flex flex-col gap-5 lg:order-2">
+            <div className="landing-eyebrow w-fit">
+              <RefreshCw className="mr-2 h-3.5 w-3.5" />
+              Iterate with Feedback
+            </div>
+            <h2 className="text-3xl font-bold text-slate-900 sm:text-4xl">
+              Not perfect? Tell the AI why.
+            </h2>
+            <p className="text-lg leading-relaxed text-slate-600">
+              Regenerate any message with natural-language feedback. Say
+              &ldquo;make it shorter&rdquo; or &ldquo;focus on my leadership
+              experience.&rdquo; The AI revises while keeping your original
+              context intact.
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link
+                href="/auth"
+                className="primary-button w-fit px-6 py-3 text-sm"
+              >
+                Try it free
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/resume-analyzer"
+                className="text-sm font-medium text-indigo-600 transition-colors hover:text-indigo-700"
+              >
+                Learn about the resume analyzer &rarr;
+              </Link>
+            </div>
+          </div>
+
+          <div className="order-1 lg:order-1">
+            <div className="mockup-frame">
+              <div className="mockup-chrome">
+                <div className="mockup-dot bg-rose-300" />
+                <div className="mockup-dot bg-amber-300" />
+                <div className="mockup-dot bg-emerald-300" />
+                <div className="ml-3 flex-1 rounded-full bg-slate-100 py-2" />
+              </div>
+              <div className="space-y-4 p-5 sm:p-6">
+                {/* Original message */}
+                <div className="space-y-2">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                    Original
+                  </span>
+                  <div className="rounded-lg border border-slate-100 bg-slate-50/60 px-3 py-2.5">
+                    <p className="text-xs leading-relaxed text-slate-500">
+                      Hi, I noticed your team is hiring for a Senior Engineer.
+                      I have 5 years of experience with distributed systems
+                      and led the migration to Kubernetes at my current role...
+                    </p>
+                  </div>
+                </div>
+
+                {/* Feedback input */}
+                <div className="space-y-2">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-500">
+                    Your feedback
+                  </span>
+                  <div className="rounded-lg border border-amber-200/60 bg-amber-50/40 px-3 py-2.5">
+                    <p className="text-xs leading-relaxed text-amber-700">
+                      &ldquo;Shorter. Lead with the Kubernetes migration metrics.
+                      Drop the generic opener.&rdquo;
+                    </p>
+                  </div>
+                </div>
+
+                {/* Revised message */}
+                <div className="space-y-2">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-500">
+                    Revised
+                  </span>
+                  <div className="rounded-lg border border-emerald-100 bg-emerald-50/40 px-3 py-2.5">
+                    <p className="text-xs leading-relaxed text-emerald-800">
+                      I migrated 140 services to Kubernetes and cut deploy
+                      time from 45 minutes to 3. Your Senior Engineer posting
+                      describes the exact stack. Happy to walk through the
+                      rollout strategy over a quick call.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ScrollReveal>
+  );
+}
+
+function TargetAudience() {
+  return (
+    <section className="landing-section">
+      <ScrollReveal className="flex flex-col items-center gap-4">
+        <div className="landing-eyebrow">
+          <UserRound className="mr-2 h-3.5 w-3.5" />
+          Built For
+        </div>
+        <h2 className="text-balance text-3xl font-bold text-slate-900 sm:text-4xl lg:text-5xl">
+          Who uses the outreach generator
+        </h2>
+      </ScrollReveal>
+
+      <div className="grid w-full gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {personas.map(({ icon: Icon, title, description }, i) => (
+          <ScrollReveal key={title} delay={i * 80}>
+            <div className="bento-cell h-full">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-linear-to-br from-indigo-100 to-pink-100 text-indigo-600">
+                <Icon className="h-5 w-5" />
+              </div>
+              <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
+              <p className="text-sm leading-relaxed text-slate-600">
+                {description}
+              </p>
+            </div>
+          </ScrollReveal>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function OutreachFAQ() {
   return (
     <section id="faq" className="landing-section">
       <ScrollReveal className="flex flex-col items-center gap-4">
         <div className="landing-eyebrow">
-          <MessageSquare className="mr-2 h-3.5 w-3.5" />
+          <MessageSquareText className="mr-2 h-3.5 w-3.5" />
           Questions
         </div>
         <h2 className="text-balance text-3xl font-bold text-slate-900 sm:text-4xl lg:text-5xl">
@@ -602,9 +900,13 @@ export default function ColdOutreachPage() {
       />
       <FeatureNav />
       <OutreachHero />
+      <WhatYouGet />
       <ChannelShowcase />
+      <ToneShowcase />
       <OutreachProcess />
       <MockupSection />
+      <RegenerationShowcase />
+      <TargetAudience />
       <OutreachFAQ />
       <OutreachCTA />
       <Footer />

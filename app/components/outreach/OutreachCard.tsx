@@ -89,17 +89,16 @@ function OutreachCardInner({ outreach }: OutreachCardProps) {
           href={`/app/outreach/${outreach.id}`}
           className="flex flex-1 flex-col gap-3 pt-2"
         >
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <h2 className="truncate text-lg font-semibold text-slate-900">
-                {outreach.jobTitle}
-              </h2>
-              {outreach.companyName && (
-                <p className="truncate text-sm text-slate-500">
-                  {outreach.companyName}
-                </p>
-              )}
-            </div>
+          {/* Title block */}
+          <div className="min-w-0">
+            <h2 className="truncate text-lg font-semibold text-slate-900">
+              {outreach.jobTitle}
+            </h2>
+            {outreach.companyName && (
+              <p className="truncate text-sm text-slate-500">
+                {outreach.companyName}
+              </p>
+            )}
           </div>
 
           {/* Channel + tone badges */}
@@ -114,9 +113,33 @@ function OutreachCardInner({ outreach }: OutreachCardProps) {
           </div>
 
           {/* Preview */}
-          <p className="text-sm leading-relaxed text-slate-500">{preview}</p>
+          <p className="line-clamp-2 text-sm leading-relaxed text-slate-500">
+            {preview}
+          </p>
 
-          <p className="text-xs font-medium text-slate-400">{formattedDate}</p>
+          {/* Footer: date + view CTA */}
+          <div className="mt-auto flex items-center justify-between">
+            <p className="text-xs font-medium text-slate-400">
+              {formattedDate}
+            </p>
+            <span className="flex items-center gap-1 text-xs font-semibold text-indigo-600">
+              View
+              <svg
+                className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M5 12h14M13 6l6 6-6 6"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+          </div>
         </Link>
 
         {/* Delete button */}
