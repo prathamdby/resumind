@@ -44,12 +44,10 @@ export default function OutreachWizard({ resumes }: OutreachWizardProps) {
   const [isImporting, setIsImporting] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
 
-  // Step 1
   const [selectedChannel, setSelectedChannel] =
     useState<OutreachChannel | null>(null);
   const [selectedTone, setSelectedTone] = useState<OutreachTone | null>(null);
 
-  // Step 2
   const [jobTitle, setJobTitle] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [recipientName, setRecipientName] = useState("");
@@ -207,7 +205,6 @@ export default function OutreachWizard({ resumes }: OutreachWizardProps) {
 
   return (
     <div className="relative">
-      {/* Generation overlay */}
       {isGenerating && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/80 backdrop-blur-md">
           <div
@@ -238,7 +235,6 @@ export default function OutreachWizard({ resumes }: OutreachWizardProps) {
         </div>
       )}
 
-      {/* Step indicator */}
       <div className="mb-8 flex items-center gap-3">
         <div
           className={cn(
@@ -273,10 +269,8 @@ export default function OutreachWizard({ resumes }: OutreachWizardProps) {
         </span>
       </div>
 
-      {/* Step 1: Channel and Tone */}
       {step === 1 && (
         <div className="flex flex-col gap-10">
-          {/* Channel selection */}
           <div className="flex flex-col gap-4">
             <label className="text-xs font-semibold uppercase tracking-[0.28em] text-indigo-500">
               Message channel
@@ -327,7 +321,6 @@ export default function OutreachWizard({ resumes }: OutreachWizardProps) {
             </div>
           </div>
 
-          {/* Tone selection */}
           <div className="flex flex-col gap-4">
             <label className="text-xs font-semibold uppercase tracking-[0.28em] text-indigo-500">
               Writing tone
@@ -376,7 +369,6 @@ export default function OutreachWizard({ resumes }: OutreachWizardProps) {
         </div>
       )}
 
-      {/* Step 2: Context Form */}
       {step === 2 && (
         <form onSubmit={handleSubmit} className="flex flex-col gap-8">
           <button
@@ -388,7 +380,6 @@ export default function OutreachWizard({ resumes }: OutreachWizardProps) {
             Back to channels
           </button>
 
-          {/* Job details */}
           <fieldset className="surface-card flex flex-col gap-6">
             <div className="flex items-center justify-between gap-4">
               <legend className="text-xs font-semibold uppercase tracking-[0.28em] text-indigo-500">
@@ -455,7 +446,6 @@ export default function OutreachWizard({ resumes }: OutreachWizardProps) {
             </div>
           </fieldset>
 
-          {/* Resume context and additional */}
           <fieldset className="surface-card flex flex-col gap-6">
             <legend className="text-xs font-semibold uppercase tracking-[0.28em] text-indigo-500">
               Context
@@ -500,7 +490,6 @@ export default function OutreachWizard({ resumes }: OutreachWizardProps) {
             </div>
           </fieldset>
 
-          {/* Submit */}
           <div className="flex justify-end">
             <button
               type="submit"

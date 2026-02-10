@@ -75,8 +75,6 @@ export async function importJobFromPdf(file: File): Promise<{
   return result.data;
 }
 
-// Cover letter API
-
 export async function generateCoverLetter(params: {
   templateId: string;
   jobTitle: string;
@@ -155,8 +153,6 @@ export async function deleteCoverLetter(id: string): Promise<void> {
     throw new Error(result.error || "Failed to delete cover letter");
   }
 }
-
-// Outreach API
 
 export async function generateOutreach(params: {
   channel: OutreachChannel;

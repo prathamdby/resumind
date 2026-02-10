@@ -3,9 +3,8 @@ import { withAuthAndRateLimit } from "@/lib/api-middleware";
 import { handleAPIError } from "@/lib/api-errors";
 import { makeAIRequest } from "@/lib/ai-helpers";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
 import { z } from "zod";
-import type { Feedback } from "@/types";
+import { FeedbackSchema } from "@/lib/schemas";
 
 const RegenerateColdDMSchema = z.object({
   resumeId: z.string(),
@@ -111,7 +110,14 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        const feedback = resume.feedback as unknown as Feedback;
+        const feedbackResult = FeedbackSchema.safeParse(resume.feedback);
+        if (!feedbackResult.success) {
+          return NextResponse.json(
+            { success: false, error: "Stored feedback is invalid" },
+            { status: 500 },
+          );
+        }
+        const feedback = feedbackResult.data;
 
         if (!feedback.coldOutreachMessage) {
           return NextResponse.json(
@@ -129,7 +135,7 @@ export async function POST(request: NextRequest) {
           resume.companyName || undefined,
         );
 
-        const updatedFeedback: Feedback = {
+        const updatedFeedback = {
           ...feedback,
           coldOutreachMessage: newColdDM,
         };
@@ -137,7 +143,7 @@ export async function POST(request: NextRequest) {
         await prisma.resume.update({
           where: { id: resumeId },
           data: {
-            feedback: updatedFeedback as unknown as Prisma.InputJsonValue,
+            feedback: updatedFeedback,
           },
         });
 

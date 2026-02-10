@@ -16,7 +16,7 @@ import {
 import { CheckCheck, Lightbulb, Pencil, MessageSquare } from "lucide-react";
 import { getServerSession } from "@/lib/auth-server";
 import { prisma } from "@/lib/prisma";
-import type { Feedback } from "@/types";
+import { FeedbackSchema } from "@/lib/schemas";
 
 export default async function ResumePage({
   params,
@@ -47,7 +47,11 @@ export default async function ResumePage({
     redirect("/app");
   }
 
-  const feedback = resume.feedback as unknown as Feedback;
+  const feedbackResult = FeedbackSchema.safeParse(resume.feedback);
+  if (!feedbackResult.success) {
+    redirect("/app");
+  }
+  const feedback = feedbackResult.data;
 
   return (
     <section className="page-shell gap-12">

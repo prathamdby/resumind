@@ -24,10 +24,8 @@ export default function CoverLetterWizard({
   const [isImporting, setIsImporting] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
 
-  // Step 1
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
 
-  // Step 2
   const [fullName, setFullName] = useState(user.name);
   const [email, setEmail] = useState(user.email);
   const [phone, setPhone] = useState("");
@@ -143,10 +141,8 @@ export default function CoverLetterWizard({
 
   return (
     <div className="relative">
-      {/* Generation overlay */}
       {isGenerating && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/80 backdrop-blur-md">
-          {/* Decorative blobs */}
           <div
             className="pointer-events-none absolute left-[15%] top-[20%] h-64 w-64 rounded-full bg-indigo-200/20 blur-3xl"
             style={{ animation: "blobMorph1 12s ease-in-out infinite" }}
@@ -160,7 +156,6 @@ export default function CoverLetterWizard({
             style={{ animation: "blobMorph3 16s ease-in-out infinite" }}
           />
 
-          {/* Frosted glass card */}
           <div className="surface-card relative flex max-w-sm flex-col items-center gap-5 text-center">
             <div className="relative">
               <div className="h-16 w-16 animate-spin rounded-full border-4 border-indigo-100 border-t-indigo-500" />
@@ -176,7 +171,6 @@ export default function CoverLetterWizard({
         </div>
       )}
 
-      {/* Step indicator */}
       <div className="mb-8 flex items-center gap-3">
         <div
           className={cn(
@@ -211,7 +205,6 @@ export default function CoverLetterWizard({
         </span>
       </div>
 
-      {/* Step 1: Template Selection */}
       {step === 1 && (
         <div className="flex flex-col gap-8">
           <TemplateGallery
@@ -232,7 +225,6 @@ export default function CoverLetterWizard({
         </div>
       )}
 
-      {/* Step 2: Context Form */}
       {step === 2 && (
         <form onSubmit={handleSubmit} className="flex flex-col gap-8">
           <button
@@ -244,7 +236,6 @@ export default function CoverLetterWizard({
             Back to templates
           </button>
 
-          {/* Personal details */}
           <fieldset className="surface-card flex flex-col gap-6">
             <legend className="text-xs font-semibold uppercase tracking-[0.28em] text-indigo-500">
               Your details
@@ -298,7 +289,6 @@ export default function CoverLetterWizard({
             </div>
           </fieldset>
 
-          {/* Job details */}
           <fieldset className="surface-card flex flex-col gap-6">
             <div className="flex items-center justify-between gap-4">
               <legend className="text-xs font-semibold uppercase tracking-[0.28em] text-indigo-500">
@@ -387,7 +377,6 @@ export default function CoverLetterWizard({
             )}
           </fieldset>
 
-          {/* Submit */}
           <div className="flex justify-end">
             <button
               type="submit"

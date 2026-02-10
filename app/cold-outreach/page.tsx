@@ -25,7 +25,7 @@ import ScrollReveal from "@/app/components/ScrollReveal";
 
 export const metadata: Metadata = {
   title:
-    "AI Cold Outreach Generator — LinkedIn DMs, Emails & More | Resumind",
+    "AI Cold Outreach Generator. LinkedIn DMs, Emails & More | Resumind",
   description:
     "Generate personalized cold outreach messages for LinkedIn DMs, cold emails, networking requests, and follow-ups. Grounded in your resume, tuned to your tone. Free AI outreach generator.",
   keywords: [
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     "personalized cold email",
   ],
   openGraph: {
-    title: "AI Cold Outreach Generator — Messages That Get Replies",
+    title: "AI Cold Outreach Generator. Messages That Get Replies",
     description:
       "4 channels. 4 tones. Your real resume. Generate outreach messages that sound human, not automated.",
     url: "/cold-outreach",

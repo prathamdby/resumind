@@ -5,6 +5,7 @@ import { makeAIRequest } from "@/lib/ai-helpers";
 import {
   OutreachRegenerateSchema,
   OutreachEmailResponseSchema,
+  OutreachContextSchema,
 } from "@/lib/schemas";
 import {
   OUTREACH_CHANNELS,
@@ -13,7 +14,6 @@ import {
   prepareOutreachRegenerationInstructions,
 } from "@/constants/outreach";
 import { prisma } from "@/lib/prisma";
-import type { OutreachGenerationContext } from "@/types";
 
 export async function POST(
   request: NextRequest,
@@ -48,8 +48,8 @@ export async function POST(
           );
         }
 
-        const context =
-          (outreach.context as unknown as OutreachGenerationContext) || {};
+        const contextResult = OutreachContextSchema.safeParse(outreach.context);
+        const context = contextResult.success ? contextResult.data : undefined;
         const channelConfig = OUTREACH_CHANNELS.find(
           (c) => c.id === outreach.channel,
         );
@@ -72,8 +72,8 @@ export async function POST(
           jobTitle: outreach.jobTitle,
           companyName: outreach.companyName || undefined,
           recipientName: outreach.recipientName || undefined,
-          jobDescription: context.jobDescription,
-          resumeMarkdown: context.resumeMarkdown,
+          jobDescription: context?.jobDescription,
+          resumeMarkdown: context?.resumeMarkdown,
         });
 
         const isEmail = outreach.channel === "cold-email";

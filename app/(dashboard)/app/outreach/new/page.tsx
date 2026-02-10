@@ -1,12 +1,16 @@
 import { getServerSession } from "@/lib/auth-server";
 import { prisma } from "@/lib/prisma";
 import OutreachWizard from "@/app/components/outreach/OutreachWizard";
+import { redirect } from "next/navigation";
 
 export default async function NewOutreachPage() {
   const session = await getServerSession();
+  if (!session?.user?.id) {
+    redirect("/auth");
+  }
 
   const resumes = await prisma.resume.findMany({
-    where: { userId: session!.user.id },
+    where: { userId: session.user.id },
     select: { id: true, jobTitle: true, companyName: true },
     orderBy: { createdAt: "desc" },
     take: 20,

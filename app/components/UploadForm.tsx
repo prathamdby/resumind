@@ -170,14 +170,12 @@ export default function UploadForm() {
     e.preventDefault();
     if (isProcessing || !file) return;
 
-    // Mark all fields as touched
     setTouched({
       jobTitle: true,
       jobDescription: true,
       file: true,
     });
 
-    // Validate all fields
     const jobTitleError = validateJobTitle(jobTitle);
     const jobDescriptionError = validateJobDescription(jobDescription);
     const fileError = validateFile(file);
@@ -188,7 +186,6 @@ export default function UploadForm() {
       file: fileError,
     });
 
-    // Check for any errors
     if (jobTitleError || jobDescriptionError || fileError) {
       if (jobTitleError) {
         toast.error("Job title required", {

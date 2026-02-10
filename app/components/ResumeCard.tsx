@@ -192,7 +192,6 @@ const ResumeCard = React.memo(
     );
   },
   (prevProps, nextProps) => {
-    // Return true if props are equal (skip re-render)
     return (
       prevProps.resume.id === nextProps.resume.id &&
       prevProps.resume.companyName === nextProps.resume.companyName &&

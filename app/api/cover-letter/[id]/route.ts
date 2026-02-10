@@ -3,7 +3,6 @@ import { withAuth } from "@/lib/api-middleware";
 import { handleAPIError } from "@/lib/api-errors";
 import { CoverLetterContentSchema } from "@/lib/schemas";
 import { prisma } from "@/lib/prisma";
-import type { CoverLetterContent } from "@/types";
 
 export async function PATCH(
   request: NextRequest,
@@ -41,12 +40,21 @@ export async function PATCH(
         );
       }
 
-      const existingContent = existing.content as unknown as CoverLetterContent;
-      const merged: CoverLetterContent = {
-        ...existingContent,
+      const existingContentValidation = CoverLetterContentSchema.safeParse(
+        existing.content,
+      );
+      if (!existingContentValidation.success) {
+        return NextResponse.json(
+          { success: false, error: "Stored content is invalid" },
+          { status: 500 },
+        );
+      }
+
+      const merged = {
+        ...existingContentValidation.data,
         ...partialContent,
         header: {
-          ...existingContent.header,
+          ...existingContentValidation.data.header,
           ...(partialContent.header || {}),
         },
       };

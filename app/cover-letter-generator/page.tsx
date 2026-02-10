@@ -30,9 +30,9 @@ import ScrollReveal from "@/app/components/ScrollReveal";
 
 export const metadata: Metadata = {
   title:
-    "AI Cover Letter Generator — Tailored Letters in Seconds | Resumind",
+    "AI Cover Letter Generator. Tailored Letters in Seconds | Resumind",
   description:
-    "Generate tailored cover letters from 6 tone-matched templates. AI writes from your actual resume — no clichés, no AI giveaways. Free cover letter generator.",
+    "Generate tailored cover letters from 6 tone-matched templates. AI writes from your actual resume. No clichés, no AI giveaways. Free cover letter generator.",
   keywords: [
     "cover letter generator",
     "AI cover letter",
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     "cover letter builder",
   ],
   openGraph: {
-    title: "AI Cover Letter Generator — Tailored Letters in Seconds",
+    title: "AI Cover Letter Generator. Tailored Letters in Seconds",
     description:
       "Six templates. Your real resume. Zero clichés. Generate a cover letter that sounds like you wrote it.",
     url: "/cover-letter-generator",
@@ -88,22 +88,22 @@ const faqItems = [
   {
     question: "What is an AI cover letter generator?",
     answer:
-      "An AI cover letter generator creates customized cover letters based on your resume and a specific job description. Resumind goes further — it offers 6 tone-matched templates, bans 50+ overused phrases, and uses only your real experience. The result reads like something you wrote on your best day.",
+      "An AI cover letter generator creates customized cover letters based on your resume and a specific job description. Resumind goes further. It offers 6 tone-matched templates, bans 50+ overused phrases, and uses only your real experience. The result reads like something you wrote on your best day.",
   },
   {
     question: "Will my cover letter sound like AI wrote it?",
     answer:
-      "No. We explicitly ban phrases like \"I am writing to express,\" \"I believe I would be a great fit,\" and 50+ other AI giveaways. The generator also avoids em-dashes, semicolons, repetitive openings, and hedging language. Hiring managers see natural, specific writing — not template filler.",
+      "No. We explicitly ban phrases like \"I am writing to express,\" \"I believe I would be a great fit,\" and 50+ other AI giveaways. The generator also avoids em-dashes, semicolons, repetitive openings, and hedging language. Hiring managers see natural, specific writing, not template filler.",
   },
   {
     question: "How many templates are available?",
     answer:
-      "Six templates across five categories: Modern Professional, Classic Formal, Bold Creative, Technical Deep-Dive, Executive Leadership, and Fresh Start. Each template has a distinct tone calibrated for its audience — from punchy and direct to strategic and authoritative.",
+      "Six templates across five categories: Modern Professional, Classic Formal, Bold Creative, Technical Deep-Dive, Executive Leadership, and Fresh Start. Each template has a distinct tone calibrated for its audience, from punchy and direct to strategic and authoritative.",
   },
   {
     question: "Can I edit the letter after it's generated?",
     answer:
-      "Yes. The full editor lets you modify every section — opening, body paragraphs, and closing. You can also regenerate individual sections with optional feedback like \"make the opening more specific to the role.\" Changes auto-save with conflict detection.",
+      "Yes. The full editor lets you modify every section, opening, body paragraphs, and closing. You can also regenerate individual sections with optional feedback like \"make the opening more specific to the role.\" Changes auto-save with conflict detection.",
   },
   {
     question: "Does it use my actual resume?",
@@ -118,12 +118,12 @@ const faqItems = [
   {
     question: "Can I export to PDF?",
     answer:
-      "Yes. One-click PDF export preserves your chosen template's formatting — accent colors, header layout, and typography. You can also copy the full letter to clipboard as plain text for pasting into application forms.",
+      "Yes. One-click PDF export preserves your chosen template's formatting, accent colors, header layout, and typography. You can also copy the full letter to clipboard as plain text for pasting into application forms.",
   },
   {
     question: "Is there a word limit?",
     answer:
-      "The generator targets under 350 words total — the sweet spot for cover letters. Body paragraphs are 3–5 sentences each. Long enough to be substantive, short enough to respect the reader's time.",
+      "The generator targets under 350 words total, the sweet spot for cover letters. Body paragraphs are 3–5 sentences each. Long enough to be substantive, short enough to respect the reader's time.",
   },
   {
     question: "What makes this different from ChatGPT?",
@@ -209,7 +209,7 @@ const processSteps = [
     icon: Sparkles,
     title: "AI generates your letter",
     description:
-      "Opening, 2–3 body paragraphs, and closing — tailored to the role and written in your chosen tone. 5–10 seconds.",
+      "Opening, 2–3 body paragraphs, and closing, tailored to the role and written in your chosen tone. 5–10 seconds.",
   },
   {
     number: "04",
@@ -236,7 +236,7 @@ const personas = [
     icon: GraduationCap,
     title: "First-Time Applicants",
     description:
-      "Staring at a blank page is the worst part of job hunting. Pick a template, add the job description, and get a letter that sounds like you — in seconds.",
+      "Staring at a blank page is the worst part of job hunting. Pick a template, add the job description, and get a letter that sounds like you, in seconds.",
   },
   {
     icon: Briefcase,
@@ -378,7 +378,7 @@ function GeneratorHero() {
           }}
         >
           Pick a template. Paste the job description. Get a tailored cover
-          letter in seconds — written from your real resume, with zero clichés
+          letter in seconds, written from your real resume, with zero clichés
           and zero AI giveaways.
         </p>
 
@@ -416,7 +416,7 @@ function WhatYouGet() {
           <div className="space-y-4 text-lg leading-relaxed text-slate-600">
             <p>
               Every cover letter is generated from one of six tone-matched
-              templates — Modern Professional, Classic Formal, Bold Creative,
+              templates, Modern Professional, Classic Formal, Bold Creative,
               Technical Deep-Dive, Executive Leadership, and Fresh Start. Each
               template produces a distinct voice calibrated for its audience, so
               a startup application never reads like a corporate one.
@@ -424,13 +424,13 @@ function WhatYouGet() {
             <p>
               The AI writes from your actual resume and the specific job
               description. It pulls real achievements, real skills, and real
-              metrics — nothing invented. Over 50 overused phrases are banned
+              metrics. Nothing invented. Over 50 overused phrases are banned
               outright, including &ldquo;I am writing to express&rdquo; and
               &ldquo;I believe I would be a great fit.&rdquo; What you get reads
               like something you wrote on your best day.
             </p>
             <p>
-              After generation, a full editor lets you tweak every section —
+              After generation, a full editor lets you tweak every section,
               opening, body paragraphs, and closing. You can regenerate any
               section with optional feedback, switch templates with one click,
               and export the final letter as a formatted PDF or copy it to
@@ -551,7 +551,7 @@ function PreviewShowcase() {
               Edit Everything. Regenerate Anything.
             </h2>
             <p className="text-lg leading-relaxed text-slate-600">
-              Every section is editable — opening, body paragraphs, and closing.
+              Every section is editable, opening, body paragraphs, and closing.
               Regenerate any section with optional feedback like &ldquo;make the
               opening more specific to the product role.&rdquo; Switch templates
               to change the visual style without losing your edits.
@@ -694,7 +694,7 @@ function NaturalVoice() {
               what they shipped. No filler adjectives. No hedging language.
             </p>
             <p>
-              Sentence structure varies naturally — short sentences after long
+              Sentence structure varies naturally. Short sentences after long
               ones, direct statements mixed with context. The AI also avoids
               em-dashes, semicolons, list-like rhythms, and repetitive openings
               that signal machine-generated text to experienced readers.

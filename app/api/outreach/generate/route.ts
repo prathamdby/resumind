@@ -13,8 +13,6 @@ import {
   prepareOutreachInstructions,
 } from "@/constants/outreach";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
-import type { OutreachGenerationContext } from "@/types";
 
 export async function POST(request: NextRequest) {
   return await withAuthAndRateLimit(
@@ -124,13 +122,16 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        const generationContext: OutreachGenerationContext = {
-          channel,
-          tone,
-          jobDescription: jobDescription || undefined,
-          additionalContext: additionalContext || undefined,
-          resumeMarkdown,
-        };
+        const contextPayload: Record<string, string> = { channel, tone };
+        if (jobDescription) {
+          contextPayload.jobDescription = jobDescription;
+        }
+        if (additionalContext) {
+          contextPayload.additionalContext = additionalContext;
+        }
+        if (resumeMarkdown) {
+          contextPayload.resumeMarkdown = resumeMarkdown;
+        }
 
         const outreach = await prisma.outreach.create({
           data: {
@@ -142,7 +143,7 @@ export async function POST(request: NextRequest) {
             recipientName: recipientName || null,
             subject: subject || null,
             content,
-            context: generationContext as unknown as Prisma.InputJsonValue,
+            context: contextPayload,
             resumeId: resumeId || null,
           },
         });

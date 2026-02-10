@@ -1,16 +1,20 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import ResumeCard from "@/app/components/ResumeCard";
 import WipeDataButton from "@/app/components/WipeDataButton";
 import { FileText, TrendingUp, Trophy } from "lucide-react";
 import { getServerSession } from "@/lib/auth-server";
 import { prisma } from "@/lib/prisma";
-import type { Feedback } from "@/types";
+import { FeedbackSchema } from "@/lib/schemas";
 
 export default async function DashboardPage() {
   const session = await getServerSession();
+  if (!session?.user?.id) {
+    redirect("/auth");
+  }
 
   const resumes = await prisma.resume.findMany({
-    where: { userId: session!.user.id },
+    where: { userId: session.user.id },
     select: {
       id: true,
       jobTitle: true,
@@ -23,9 +27,16 @@ export default async function DashboardPage() {
     take: 50,
   });
 
-  const scores = resumes
-    .map((r) => (r.feedback as unknown as Feedback)?.overallScore)
-    .filter((s): s is number => typeof s === "number");
+  const feedbackByResumeId = new Map(
+    resumes.flatMap((resume) => {
+      const parsed = FeedbackSchema.safeParse(resume.feedback);
+      return parsed.success ? [[resume.id, parsed.data]] : [];
+    }),
+  );
+
+  const scores = [...feedbackByResumeId.values()].map(
+    (feedback) => feedback.overallScore,
+  );
 
   const stats = {
     resumeCount: resumes.length,
@@ -36,7 +47,7 @@ export default async function DashboardPage() {
     bestScore: scores.length > 0 ? Math.max(...scores) : null,
   };
 
-  const firstName = session!.user.name?.split(" ")[0];
+  const firstName = session.user.name?.split(" ")[0];
 
   const statCards = [
     {
@@ -70,7 +81,6 @@ export default async function DashboardPage() {
 
   return (
     <section className="mx-auto flex w-full max-w-6xl flex-col gap-14 px-6 pb-16 pt-10 sm:px-10 lg:px-14 lg:pt-12">
-      {/* Greeting */}
       <header className="flex flex-col gap-8">
         <div className="flex flex-col gap-3">
           <h1 className="text-4xl font-semibold text-slate-900 sm:text-5xl">
@@ -98,7 +108,6 @@ export default async function DashboardPage() {
         </div>
       </header>
 
-      {/* Stats row */}
       <dl className="grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
         {statCards.map(({ label, value, suffix, icon: Icon, color }) => (
           <div
@@ -121,7 +130,6 @@ export default async function DashboardPage() {
         ))}
       </dl>
 
-      {/* Resume grid */}
       <section id="resumes" className="flex flex-col gap-10">
         <div className="flex flex-col gap-3">
           <h2 className="text-3xl font-semibold text-slate-900 sm:text-4xl">
@@ -152,7 +160,10 @@ export default async function DashboardPage() {
         ) : (
           <div className="grid gap-6 sm:grid-cols-2">
             {resumes.map((resume) => {
-              const feedback = resume.feedback as unknown as Feedback;
+              const feedback = feedbackByResumeId.get(resume.id);
+              if (!feedback) {
+                return null;
+              }
               return (
                 <ResumeCard
                   key={resume.id}
@@ -171,7 +182,6 @@ export default async function DashboardPage() {
         )}
       </section>
 
-      {/* Wipe data */}
       {resumes.length > 0 && (
         <div className="flex justify-center border-t border-slate-200/60 pt-10">
           <WipeDataButton resumes={resumeList} />

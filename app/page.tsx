@@ -24,11 +24,11 @@ import {
 import ScrollReveal from "@/app/components/ScrollReveal";
 
 export const metadata: Metadata = {
-  title: "Resumind — AI Resume Analyzer & Cover Letter Generator",
+  title: "Resumind. AI Resume Analyzer & Cover Letter Generator",
   description:
     "Get your resume scored across 5 dimensions, rewritten line-by-line, and optimized for ATS in under 60 seconds. Free AI-powered resume feedback.",
   openGraph: {
-    title: "Resumind — AI Resume Analyzer & Cover Letter Generator",
+    title: "Resumind. AI Resume Analyzer & Cover Letter Generator",
     description:
       "Score, rewrite, and optimize your resume with AI. Land more interviews.",
     url: "/",
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Resumind — AI Resume Analyzer",
+    title: "Resumind. AI Resume Analyzer",
     description:
       "Score, rewrite, and optimize your resume with AI. Land more interviews.",
   },

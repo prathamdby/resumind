@@ -20,7 +20,6 @@ const LineByLineImprovements = ({
 }: LineByLineImprovementsProps) => {
   const [appliedIds, setAppliedIds] = useState<Set<string>>(new Set());
 
-  // Group improvements by section
   const groupedImprovements = useMemo(() => {
     const groups: Record<string, LineImprovement[]> = {};
 
@@ -32,7 +31,6 @@ const LineByLineImprovements = ({
       groups[section].push(improvement);
     });
 
-    // Sort sections in a logical order
     const sectionOrder: Array<LineImprovement["section"]> = [
       "summary",
       "experience",
@@ -49,7 +47,6 @@ const LineByLineImprovements = ({
       }));
   }, [improvements]);
 
-  // Get section display name
   const getSectionDisplayName = (section: LineImprovement["section"]) => {
     switch (section) {
       case "summary":
@@ -94,7 +91,6 @@ const LineByLineImprovements = ({
     }
   };
 
-  // Calculate stats
   const totalImprovements = improvements.length;
   const appliedCount = appliedIds.size;
   const highPriorityCount = improvements.filter(
@@ -103,7 +99,6 @@ const LineByLineImprovements = ({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Stats and Actions Bar */}
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-indigo-100/70 bg-indigo-50/40 px-5 py-4">
         <div className="flex flex-wrap items-center gap-4 text-sm">
           <div>
@@ -159,7 +154,6 @@ const LineByLineImprovements = ({
         </button>
       </div>
 
-      {/* Grouped Improvements by Section */}
       <Accordion
         className="space-y-3"
         defaultOpen={groupedImprovements[0]?.section}
@@ -202,7 +196,6 @@ const LineByLineImprovements = ({
         ))}
       </Accordion>
 
-      {/* Help Text */}
       <div className="rounded-2xl border border-slate-200/60 bg-white/80 px-5 py-4 text-sm text-slate-600">
         <p className="font-semibold text-slate-800">How to use these tips</p>
         <p className="mt-1">

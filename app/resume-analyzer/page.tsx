@@ -31,7 +31,7 @@ import ScrollReveal from "@/app/components/ScrollReveal";
 
 export const metadata: Metadata = {
   title:
-    "AI Resume Analyzer — Score, Rewrite & Optimize Your Resume | Resumind",
+    "AI Resume Analyzer. Score, Rewrite & Optimize Your Resume | Resumind",
   description:
     "Get your resume scored across 5 dimensions, rewritten line-by-line, and optimized for ATS in under 60 seconds. Free AI-powered resume analysis.",
   keywords: [
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     "line-by-line resume rewrite",
   ],
   openGraph: {
-    title: "AI Resume Analyzer — Score, Rewrite & Optimize Your Resume",
+    title: "AI Resume Analyzer. Score, Rewrite & Optimize Your Resume",
     description:
       "Five scoring dimensions. Line-by-line rewrites. ATS optimization. All in under 60 seconds.",
     url: "/resume-analyzer",
@@ -89,7 +89,7 @@ const faqItems = [
   {
     question: "What is an AI resume analyzer?",
     answer:
-      "An AI resume analyzer is a tool that uses artificial intelligence to evaluate your resume against job requirements. Resumind scores your resume across five dimensions — ATS compatibility, content quality, structure, tone, and skills presentation — and provides specific, actionable feedback to improve it.",
+      "An AI resume analyzer is a tool that uses artificial intelligence to evaluate your resume against job requirements. Resumind scores your resume across five dimensions, ATS compatibility, content quality, structure, tone, and skills presentation, and provides specific, actionable feedback to improve it.",
   },
   {
     question: "How does the ATS score work?",
@@ -119,7 +119,7 @@ const faqItems = [
   {
     question: "How many times can I analyze my resume?",
     answer:
-      "You can analyze as many resumes as you need. Rate limits exist to maintain quality — 2 analyses per minute — but there is no hard cap on total usage. Most users re-analyze after each round of edits to track their score improvement.",
+      "You can analyze as many resumes as you need. Rate limits exist to maintain quality, 2 analyses per minute, but there is no hard cap on total usage. Most users re-analyze after each round of edits to track their score improvement.",
   },
   {
     question: "What makes this different from other resume tools?",
@@ -258,7 +258,7 @@ const priorities = [
     level: "LOW",
     color: "bg-emerald-100 text-emerald-700 border-emerald-200",
     dotColor: "bg-emerald-500",
-    meaning: "Polish and refinement — good resume becomes great",
+    meaning: "Polish and refinement. Good resume becomes great",
     example: "Tighten a wordy sentence from 25 words to 15",
   },
 ];
@@ -436,7 +436,7 @@ function AnalyzerHero() {
         >
           Upload your resume and a job description. Get scored across five
           dimensions, receive 8–12 line-by-line rewrites, and see exactly what
-          to fix — all in under 60 seconds.
+          to fix, all in under 60 seconds.
         </p>
 
         <div
@@ -479,14 +479,14 @@ function WhatYouGet() {
               stand and where to improve.
             </p>
             <p>
-              Beyond scores, you receive 8–12 line-by-line rewrites — specific
+              Beyond scores, you receive 8–12 line-by-line rewrites. Specific
               before-and-after suggestions you can copy directly into your
               resume. Each rewrite is tagged by priority (high, medium, low) and
               category (quantify, action verb, keyword, clarity, ATS) so you
               know exactly why the change matters and where to focus first.
             </p>
             <p>
-              You also get a cold outreach message — a LinkedIn DM drafted from
+              You also get a cold outreach message. A LinkedIn DM drafted from
               your actual resume content, ready to send to hiring managers. No
               generic templates. Every piece of feedback is grounded in what your
               resume actually says and what the target job actually requires.

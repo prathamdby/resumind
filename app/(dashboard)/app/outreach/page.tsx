@@ -3,12 +3,16 @@ import { getServerSession } from "@/lib/auth-server";
 import { prisma } from "@/lib/prisma";
 import OutreachCard from "@/app/components/outreach/OutreachCard";
 import { Plus } from "lucide-react";
+import { redirect } from "next/navigation";
 
 export default async function OutreachListPage() {
   const session = await getServerSession();
+  if (!session?.user?.id) {
+    redirect("/auth");
+  }
 
   const outreaches = await prisma.outreach.findMany({
-    where: { userId: session!.user.id },
+    where: { userId: session.user.id },
     select: {
       id: true,
       channel: true,

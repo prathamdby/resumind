@@ -2,7 +2,6 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "./prisma";
 
-// Validate required environment variables
 const requiredEnvVars = [
   "DATABASE_URL",
   "DIRECT_DATABASE_URL",

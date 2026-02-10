@@ -52,7 +52,6 @@ export const Accordion: React.FC<AccordionProps> = ({
 }) => {
   const [allItemIds, setAllItemIds] = useState<string[]>([]);
 
-  // Initialize from defaultOpen (same on server and client)
   const getInitialState = (): string[] => {
     if (Array.isArray(defaultOpen)) {
       return defaultOpen;
@@ -66,7 +65,6 @@ export const Accordion: React.FC<AccordionProps> = ({
   const [activeItems, setActiveItems] = useState<string[]>(getInitialState);
   const persistTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load from localStorage after mount (client-only)
   useEffect(() => {
     if (persistKey && typeof window !== "undefined") {
       try {
@@ -77,11 +75,12 @@ export const Accordion: React.FC<AccordionProps> = ({
             setActiveItems(parsed);
           }
         }
-      } catch {}
+      } catch (error) {
+        console.warn("Could not restore accordion state", error);
+      }
     }
   }, [persistKey]);
 
-  // Persist to localStorage when activeItems change (debounced)
   useEffect(() => {
     if (!persistKey || typeof window === "undefined") {
       return;
@@ -100,25 +99,18 @@ export const Accordion: React.FC<AccordionProps> = ({
       } catch (error) {
         if (error instanceof DOMException) {
           if (error.name === "QuotaExceededError") {
-            // Clear old accordion states to make room
             try {
               const allKeys = Object.keys(localStorage);
               const accordionKeys = allKeys
                 .filter((key) => key.startsWith("accordion-"))
                 .sort();
 
-              // Remove oldest states, keep 5 most recent
               accordionKeys
                 .slice(0, Math.max(0, accordionKeys.length - 5))
                 .forEach((key) => {
-                  try {
-                    localStorage.removeItem(key);
-                  } catch (e) {
-                    // Ignore cleanup errors
-                  }
+                  localStorage.removeItem(key);
                 });
 
-              // Retry save
               localStorage.setItem(
                 `accordion-${persistKey}`,
                 JSON.stringify(activeItems),
@@ -127,7 +119,6 @@ export const Accordion: React.FC<AccordionProps> = ({
               console.warn("Could not persist accordion state", retryError);
             }
           } else if (error.name === "SecurityError") {
-            // Private browsing mode - silently fail
             console.info("localStorage unavailable (private browsing?)");
           }
         } else {
@@ -143,7 +134,6 @@ export const Accordion: React.FC<AccordionProps> = ({
     };
   }, [activeItems, persistKey]);
 
-  // Handle URL hash on mount
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -234,7 +224,6 @@ export const AccordionItem: React.FC<AccordionItemProps> = ({
   const { isItemActive, registerItem } = useAccordion();
   const active = isItemActive(id);
 
-  // Register this item with the parent accordion
   useEffect(() => {
     registerItem(id);
   }, [id, registerItem]);

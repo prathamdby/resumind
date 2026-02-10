@@ -5,7 +5,6 @@ import { makeAIRequest } from "@/lib/ai-helpers";
 import { CoverLetterContentSchema } from "@/lib/schemas";
 import { getTemplateById } from "@/constants/cover-letter-templates";
 import { prisma } from "@/lib/prisma";
-import type { CoverLetterContent } from "@/types";
 
 export async function POST(
   request: NextRequest,
@@ -39,7 +38,16 @@ export async function POST(
           );
         }
 
-        const content = coverLetter.content as unknown as CoverLetterContent;
+        const contentValidation = CoverLetterContentSchema.safeParse(
+          coverLetter.content,
+        );
+        if (!contentValidation.success) {
+          return NextResponse.json(
+            { success: false, error: "Stored content is invalid" },
+            { status: 500 },
+          );
+        }
+        const content = contentValidation.data;
         const template = getTemplateById(coverLetter.templateId);
         const toneLine = template
           ? `Tone: ${template.tone}`

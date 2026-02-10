@@ -37,8 +37,6 @@ const LineImprovementSchema = z.object({
   category: z.enum(["quantify", "action-verb", "keyword", "clarity", "ats"]),
 });
 
-// Cover letter schemas -- AI output vs full persisted content
-
 export const CoverLetterAISchema = z.object({
   recipientName: z.string().min(1).max(200),
   opening: z.string().min(20).max(600),
@@ -63,8 +61,6 @@ export const CoverLetterContentSchema = z.object({
   closing: z.string().min(1).max(400),
   signature: z.string().min(1).max(200),
 });
-
-// Resume feedback schemas
 
 export const FeedbackSchema = z.object({
   overallScore: z.number().min(0).max(100),
@@ -92,8 +88,6 @@ export const FeedbackSchema = z.object({
   coldOutreachMessage: z.string().min(50).max(500).optional(),
 });
 
-// Outreach schemas
-
 export const OutreachGenerateSchema = z.object({
   channel: z.enum(["linkedin-dm", "cold-email", "networking", "follow-up"]),
   tone: z.enum(["bold", "warm", "professional", "curious"]),
@@ -112,4 +106,12 @@ export const OutreachRegenerateSchema = z.object({
 export const OutreachEmailResponseSchema = z.object({
   subject: z.string().min(1).max(200),
   body: z.string().min(50).max(2000),
+});
+
+export const OutreachContextSchema = z.object({
+  channel: z.enum(["linkedin-dm", "cold-email", "networking", "follow-up"]),
+  tone: z.enum(["bold", "warm", "professional", "curious"]),
+  jobDescription: z.string().max(50000).optional(),
+  additionalContext: z.string().max(1000).optional(),
+  resumeMarkdown: z.string().optional(),
 });

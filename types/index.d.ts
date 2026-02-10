@@ -139,8 +139,6 @@ export interface CoverLetter {
   updatedAt: string;
 }
 
-// Outreach types
-
 export type OutreachChannel =
   | "linkedin-dm"
   | "cold-email"

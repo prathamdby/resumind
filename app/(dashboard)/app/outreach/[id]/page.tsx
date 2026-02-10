@@ -10,9 +10,12 @@ export default async function OutreachDetailPage({
 }) {
   const { id } = await params;
   const session = await getServerSession();
+  if (!session?.user?.id) {
+    redirect("/auth");
+  }
 
   const outreach = await prisma.outreach.findFirst({
-    where: { id, userId: session!.user.id },
+    where: { id, userId: session.user.id },
     select: {
       id: true,
       channel: true,

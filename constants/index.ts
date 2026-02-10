@@ -1,11 +1,10 @@
-// Cover letter AI response format -- body only, NO header fields
 export const CoverLetterResponseFormat = `
 interface CoverLetterAIResponse {
-  recipientName: string;       // e.g. "Hiring Manager" or a specific name if provided
-  opening: string;             // 2-4 sentences, hook + why this role/company
-  bodyParagraphs: string[];    // 2-3 paragraphs, each 3-5 sentences; map resume to job requirements
-  closing: string;             // 1-2 sentences, confident close with soft CTA
-  signature: string;           // candidate's full name
+  recipientName: string;
+  opening: string;
+  bodyParagraphs: string[];
+  closing: string;
+  signature: string;
 }`;
 
 export const prepareCoverLetterInstructions = ({
@@ -31,7 +30,7 @@ ${jobDescription ? `Job Description:\n${jobDescription}` : "No job description p
 
 TONE INSTRUCTIONS: ${templateTone}
 
-${hasResume ? `CANDIDATE RESUME:\n${resumeMarkdown}\n\nUse specific details, skills, and experience from this resume. Never invent achievements or metrics not present in the resume.` : "No resume provided. Write plausible but clearly generic content. Use [TODO: add specific detail] markers where the candidate should fill in their own experience."}
+${hasResume ? `CANDIDATE RESUME:\n${resumeMarkdown}\n\nUse specific details, skills, and experience from this resume. Never invent achievements or metrics not present in the resume.` : "No resume provided. Write plausible but clearly generic content and avoid fabricated metrics."}
 
 STRUCTURE:
 - recipientName: "${companyName ? "Hiring Manager" : "Hiring Manager"}" unless a specific name is known
@@ -74,7 +73,7 @@ Your approach:
 4. Keep it concise -- hiring managers skim, so every sentence must earn its place
 
 Hard constraints to avoid AI giveaways:
-- Systematically replace em-dashes ("—") with a dot (".") to start a new sentence, or a comma (",") to continue the sentence.
+- Systematically replace em-dashes ("em-dash") with a dot (".") to start a new sentence, or a comma (",") to continue the sentence.
 - Never output em-dashes.
 - Avoid repetitive sentence scaffolding and repeated openers.
 - Avoid corporate cliches, motivational fluff, and abstract claims without evidence.
@@ -87,59 +86,58 @@ Hard constraints to avoid AI giveaways:
 Return ONLY valid JSON matching the requested structure. No markdown, no code blocks, no explanatory text.`;
 };
 
-// Resume analysis AI response format
 export const AIResponseFormat = `
         interface Feedback {
-        overallScore: number; //max 100
+        overallScore: number;
         ATS: {
-          score: number; //rate based on ATS suitability
+          score: number;
           tips: {
             type: "good" | "improve";
-            tip: string; //give 3-4 tips
+            tip: string;
           }[];
         };
         toneAndStyle: {
-          score: number; //max 100
+          score: number;
           tips: {
             type: "good" | "improve";
-            tip: string; //make it a short "title" for the actual explanation
-            explanation: string; //explain in detail here
-          }[]; //give 3-4 tips
+            tip: string;
+            explanation: string;
+          }[];
         };
         content: {
-          score: number; //max 100
+          score: number;
           tips: {
             type: "good" | "improve";
-            tip: string; //make it a short "title" for the actual explanation
-            explanation: string; //explain in detail here
-          }[]; //give 3-4 tips
+            tip: string;
+            explanation: string;
+          }[];
         };
         structure: {
-          score: number; //max 100
+          score: number;
           tips: {
             type: "good" | "improve";
-            tip: string; //make it a short "title" for the actual explanation
-            explanation: string; //explain in detail here
-          }[]; //give 3-4 tips
+            tip: string;
+            explanation: string;
+          }[];
         };
         skills: {
-          score: number; //max 100
+          score: number;
           tips: {
             type: "good" | "improve";
-            tip: string; //make it a short "title" for the actual explanation
-            explanation: string; //explain in detail here
-          }[]; //give 3-4 tips
+            tip: string;
+            explanation: string;
+          }[];
         };
         lineImprovements: {
           section: "summary" | "experience" | "education" | "skills" | "other";
-          sectionTitle: string; //e.g., "Experience - Software Engineer at Google"
-          original: string; //exact text from resume to replace
-          suggested: string; //improved version with specific changes
-          reason: string; //why this change matters (1-2 sentences)
-          priority: "high" | "medium" | "low"; //based on impact
+          sectionTitle: string;
+          original: string;
+          suggested: string;
+          reason: string;
+          priority: "high" | "medium" | "low";
           category: "quantify" | "action-verb" | "keyword" | "clarity" | "ats";
-        }[]; //REQUIRED: provide 8-12 specific line-by-line improvements
-        coldOutreachMessage?: string; //optional: less than 100 words; role-agnostic addressing (no placeholders), strictly resume-grounded; clear CTA.
+        }[];
+        coldOutreachMessage?: string;
       }`;
 
 export const prepareInstructions = ({

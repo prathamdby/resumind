@@ -155,7 +155,7 @@ Overlay a noise texture (`feTurbulence` SVG inline data URI, `mix-blend-mode: ov
 
 - Solid white/gray backgrounds
 - Flat color fills without depth
-- Generic purple gradients (the indigo/pink palette is specific — follow the hex values)
+- Generic purple gradients (the indigo/pink palette is specific, follow the hex values)
 - Dark mode (light mode only)
 - High-contrast neon colors
 
@@ -366,7 +366,7 @@ Design decisions:
 
 - Chose `IntersectionObserver` over `animation-timeline: view()` for browser compatibility.
 - The component is a client component to use `useEffect`, but wraps server-rendered children (no hydration mismatch).
-- Once visible, the observer disconnects — no re-triggering on scroll up.
+- Once visible, the observer disconnects. No re-triggering on scroll up.
 - Delay is applied via `setTimeout` in the observer callback, not CSS `transition-delay`, to avoid elements being visible-but-not-animated when scrolling fast.
 
 **Reduced Motion Accessibility:**
@@ -452,7 +452,7 @@ Generous spacing with clear hierarchy.
 Product showcase sections alternate text/mockup placement:
 
 1. Text left, mockup right (Score Dashboard)
-2. Mockup left, text right (Line Improvements) — uses `order-1`/`order-2` with `lg:order-*` overrides
+2. Mockup left, text right (Line Improvements), uses `order-1`/`order-2` with `lg:order-*` overrides
 3. Text left, mockup right (Cover Letters)
 
 This zig-zag pattern prevents visual monotony across stacked sections.
@@ -636,7 +636,7 @@ Before finalizing any design:
 - [ ] Responsive: Proper breakpoints (sm/md/lg/xl)
 - [ ] Reduced motion: `@media (prefers-reduced-motion: reduce)` handled
 - [ ] Server/client boundary: No hooks or browser APIs in server components
-- [ ] No `shadow-(--var)` in `@apply` (use `box-shadow: var(...)` separately — see gotcha below)
+- [ ] No `shadow-(--var)` in `@apply` (use `box-shadow: var(...)` separately, see gotcha below)
 
 ## Context-Specific Patterns
 
@@ -683,7 +683,7 @@ Pure server component. 10 sections composed from extracted sub-components:
 
 _Component extraction philosophy:_
 
-Each section is a standalone function component within `app/page.tsx`. Data arrays (features, steps, testimonials, FAQ items, stats) are declared as module-level `const` arrays — not inline — for readability and future extraction.
+Each section is a standalone function component within `app/page.tsx`. Data arrays (features, steps, testimonials, FAQ items, stats) are declared as module-level `const` arrays, not inline, for readability and future extraction.
 
 _Server component strategy:_
 
@@ -833,7 +833,7 @@ Landing page classes are grouped under a `/* ─── Landing Page ─── */
 - `will-change: transform, border-radius` on animated blobs
 - `ScrollReveal` observer disconnects after first intersection (no ongoing observation)
 - Landing page is 100% server-rendered except `ScrollReveal` wrappers
-- Mockups are CSS-built, not images — zero additional network requests
+- Mockups are CSS-built, not images. Zero additional network requests
 - Lucide icons are tree-shaken by import (only used icons ship to client)
 
 ## Remember
