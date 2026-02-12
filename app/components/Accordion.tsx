@@ -25,6 +25,10 @@ const AccordionContext = createContext<AccordionContextType | undefined>(
   undefined,
 );
 
+const STORAGE_VERSION = "v1";
+const storageKey = (persistKey: string) =>
+  `resumind-${STORAGE_VERSION}-accordion-${persistKey}`;
+
 const useAccordion = () => {
   const context = useContext(AccordionContext);
   if (!context) {
@@ -50,7 +54,8 @@ export const Accordion: React.FC<AccordionProps> = ({
   persistKey,
   showControls = false,
 }) => {
-  const [allItemIds, setAllItemIds] = useState<string[]>([]);
+  const allItemIdsRef = useRef<string[]>([]);
+  const [itemsRegistered, setItemsRegistered] = useState(false);
 
   const getInitialState = (): string[] => {
     if (Array.isArray(defaultOpen)) {
@@ -66,9 +71,30 @@ export const Accordion: React.FC<AccordionProps> = ({
   const persistTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    if (itemsRegistered) return;
+    const timer = setTimeout(() => {
+      setItemsRegistered(true);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [itemsRegistered]);
+
+  useEffect(() => {
     if (persistKey && typeof window !== "undefined") {
       try {
-        const stored = localStorage.getItem(`accordion-${persistKey}`);
+        const newKey = storageKey(persistKey);
+        const oldKey = `accordion-${persistKey}`;
+        let stored = localStorage.getItem(newKey);
+
+        if (!stored) {
+          // Migration path
+          const oldStored = localStorage.getItem(oldKey);
+          if (oldStored) {
+            stored = oldStored;
+            localStorage.setItem(newKey, oldStored);
+            localStorage.removeItem(oldKey);
+          }
+        }
+
         if (stored) {
           const parsed = JSON.parse(stored);
           if (Array.isArray(parsed) && parsed.length > 0) {
@@ -93,7 +119,7 @@ export const Accordion: React.FC<AccordionProps> = ({
     persistTimeoutRef.current = setTimeout(() => {
       try {
         localStorage.setItem(
-          `accordion-${persistKey}`,
+          storageKey(persistKey),
           JSON.stringify(activeItems),
         );
       } catch (error) {
@@ -102,7 +128,7 @@ export const Accordion: React.FC<AccordionProps> = ({
             try {
               const allKeys = Object.keys(localStorage);
               const accordionKeys = allKeys
-                .filter((key) => key.startsWith("accordion-"))
+                .filter((key) => key.startsWith(`resumind-${STORAGE_VERSION}-accordion-`))
                 .sort();
 
               accordionKeys
@@ -112,7 +138,7 @@ export const Accordion: React.FC<AccordionProps> = ({
                 });
 
               localStorage.setItem(
-                `accordion-${persistKey}`,
+                storageKey(persistKey),
                 JSON.stringify(activeItems),
               );
             } catch (retryError) {
@@ -135,10 +161,10 @@ export const Accordion: React.FC<AccordionProps> = ({
   }, [activeItems, persistKey]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !itemsRegistered) return;
 
     const hash = window.location.hash.slice(1);
-    if (hash && allItemIds.includes(hash)) {
+    if (hash && allItemIdsRef.current.includes(hash)) {
       setActiveItems((prev) => (prev.includes(hash) ? prev : [...prev, hash]));
       setTimeout(() => {
         document.getElementById(hash)?.scrollIntoView({
@@ -147,10 +173,12 @@ export const Accordion: React.FC<AccordionProps> = ({
         });
       }, 100);
     }
-  }, [allItemIds]);
+  }, [itemsRegistered]);
 
   const registerItem = useCallback((id: string) => {
-    setAllItemIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+    if (!allItemIdsRef.current.includes(id)) {
+      allItemIdsRef.current = [...allItemIdsRef.current, id];
+    }
   }, []);
 
   const toggleItem = (id: string) => {
@@ -165,7 +193,7 @@ export const Accordion: React.FC<AccordionProps> = ({
   };
 
   const expandAll = () => {
-    setActiveItems(allItemIds);
+    setActiveItems([...allItemIdsRef.current]);
   };
 
   const collapseAll = () => {
@@ -182,11 +210,11 @@ export const Accordion: React.FC<AccordionProps> = ({
         isItemActive,
         expandAll,
         collapseAll,
-        allItemIds,
+        allItemIds: allItemIdsRef.current,
         registerItem,
       }}
     >
-      {showControls && allItemIds.length > 0 && (
+      {showControls && itemsRegistered && allItemIdsRef.current.length > 0 && (
         <div className="mb-4 flex items-center justify-end gap-2">
           <button
             onClick={expandAll}
