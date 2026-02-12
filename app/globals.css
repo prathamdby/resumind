@@ -648,6 +648,67 @@
   @apply border-indigo-300 bg-indigo-50 text-indigo-700;
 }
 
+/* ─── LaTeX Editor ─── */
+
+.latex-toolbar-btn {
+  @apply inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all duration-150 ease-out disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.latex-toolbar-btn--primary {
+  @apply text-white;
+  background: linear-gradient(120deg, #6f7aff 0%, #4c57e9 50%, #7b5cff 100%);
+  box-shadow: 0 8px 24px -8px rgba(96, 107, 235, 0.4);
+}
+
+.latex-toolbar-btn--primary:hover:not(:disabled) {
+  @apply -translate-y-px;
+  box-shadow: 0 12px 28px -8px rgba(96, 107, 235, 0.5);
+}
+
+.latex-toolbar-btn--secondary {
+  @apply border border-slate-200/80 bg-white/90 text-slate-600 hover:bg-slate-50 hover:text-slate-800;
+}
+
+.latex-editor-wrap {
+  min-height: 100%;
+}
+
+.latex-editor {
+  min-height: 100%;
+  caret-color: #4c57e9;
+}
+
+.latex-editor-textarea {
+  outline: none !important;
+}
+
+.latex-editor .token.comment {
+  color: #6a9955;
+  font-style: italic;
+}
+
+.latex-editor .token.keyword {
+  color: #569cd6;
+  font-weight: 600;
+}
+
+.latex-editor .token.function {
+  color: #c586c0;
+  font-weight: 600;
+}
+
+.latex-editor .token.string {
+  color: #ce9178;
+}
+
+.latex-editor .token.punctuation {
+  color: #d4a64a;
+}
+
+.latex-editor .token.operator {
+  color: #d4d4d4;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

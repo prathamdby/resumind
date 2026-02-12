@@ -17,6 +17,7 @@ import { CheckCheck, Lightbulb, Pencil, MessageSquare } from "lucide-react";
 import { getServerSession } from "@/lib/auth-server";
 import { prisma } from "@/lib/prisma";
 import { FeedbackSchema } from "@/lib/schemas";
+import LatexImproveButton from "@/app/components/latex/LatexImproveButton";
 
 const ICON_MESSAGE_SQUARE = { Icon: MessageSquare } as const;
 const ICON_PENCIL = { Icon: Pencil } as const;
@@ -69,7 +70,15 @@ export default async function ResumePage({
           <span>Back to dashboard</span>
         </Link>
         <div className="flex flex-col gap-2">
-          <span className="section-eyebrow w-fit">Resume analysis</span>
+          <div className="flex items-center gap-3">
+            <span className="section-eyebrow w-fit">Resume analysis</span>
+            <LatexImproveButton
+              lineImprovements={feedback.lineImprovements}
+              resumeId={resume.id}
+              jobTitle={resume.jobTitle || ""}
+              companyName={resume.companyName || undefined}
+            />
+          </div>
           <h1 className="text-4xl font-semibold text-slate-900 sm:text-5xl">
             {resume.jobTitle}
             {resume.companyName && ` at ${resume.companyName}`}
