@@ -241,7 +241,7 @@
   }
 
   .preview-rail {
-    @apply sticky top-6 flex flex-col gap-6 px-2 pb-6 sm:px-4;
+    @apply flex flex-col gap-6 px-2 pb-6 sm:px-4 lg:sticky lg:top-6;
   }
 
   .preview-rail__card {
