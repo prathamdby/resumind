@@ -15,10 +15,7 @@ export async function DELETE() {
         }),
         prisma.rateLimit.deleteMany({
           where: {
-            OR: [
-              { key: { startsWith: `/api/import-job:${userId}` } },
-              { key: { startsWith: `/api/analyze:${userId}` } },
-            ],
+            key: { startsWith: `${userId}:` },
           },
         }),
       ]);
