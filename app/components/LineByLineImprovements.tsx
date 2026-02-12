@@ -39,12 +39,18 @@ const LineByLineImprovements = ({
       "other",
     ];
 
-    return sectionOrder
-      .filter((section) => groups[section]?.length > 0)
-      .map((section) => ({
-        section,
-        improvements: groups[section],
-      }));
+    return sectionOrder.reduce<{
+      section: LineImprovement["section"];
+      improvements: LineImprovement[];
+    }[]>(
+      (acc, section) => {
+        if (groups[section]?.length > 0) {
+          acc.push({ section, improvements: groups[section] });
+        }
+        return acc;
+      },
+      [],
+    );
   }, [improvements]);
 
   const getSectionDisplayName = (section: LineImprovement["section"]) => {
