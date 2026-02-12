@@ -1,9 +1,14 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import FileUploader from "@/app/components/FileUploader";
-import ImportJobModal from "@/app/components/ImportJobModal";
+
+const ImportJobModal = dynamic(
+  () => import("@/app/components/ImportJobModal"),
+  { ssr: false },
+);
 import ReasoningToggle, {
   type ReasoningLevel,
 } from "@/app/components/ReasoningToggle";
