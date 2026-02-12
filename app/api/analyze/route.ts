@@ -5,10 +5,6 @@ import { makeAIRequest } from "@/lib/ai-helpers";
 import { FeedbackSchema } from "@/lib/schemas";
 import { getAISystemPrompt, prepareInstructions } from "@/constants";
 import { prisma } from "@/lib/prisma";
-import { writeFile, unlink, readFile } from "fs/promises";
-import { join } from "path";
-import { tmpdir } from "os";
-import { randomUUID } from "crypto";
 import type { Feedback } from "@/types";
 import type { ReasoningLevel } from "@/app/components/ReasoningToggle";
 
@@ -16,10 +12,8 @@ const MAX_MARKDOWN_LENGTH = 15000;
 const PDF_SERVICE_URL = process.env.PDF_SERVICE_URL || "http://localhost:8000";
 
 async function convertPdfToMarkdown(
-  filePath: string,
+  fileBuffer: Buffer,
 ): Promise<{ markdown: string; previewImage: string | null }> {
-  const fileBuffer = await readFile(filePath);
-
   const formData = new FormData();
   const file = new File([new Uint8Array(fileBuffer)], "resume.pdf", {
     type: "application/pdf",
@@ -82,8 +76,6 @@ export async function POST(request: NextRequest) {
     request,
     "/api/analyze",
     async ({ userId }) => {
-      let tempFilePath: string | null = null;
-
       try {
         const formData = await request.formData();
         const file = formData.get("file") as File | null;
@@ -114,27 +106,10 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        try {
-          await fetch(`${PDF_SERVICE_URL}/health`, {
-            signal: AbortSignal.timeout(2000),
-          });
-        } catch {
-          return NextResponse.json(
-            {
-              success: false,
-              error: "PDF service unavailable. Please try again later.",
-            },
-            { status: 502 },
-          );
-        }
-
-        tempFilePath = join(tmpdir(), `resume-${userId}-${randomUUID()}.pdf`);
         const buffer = Buffer.from(await file.arrayBuffer());
 
-        await writeFile(tempFilePath, buffer);
-
         const { markdown, previewImage } =
-          await convertPdfToMarkdown(tempFilePath);
+          await convertPdfToMarkdown(buffer);
         if (markdown.length >= MAX_MARKDOWN_LENGTH) {
           return NextResponse.json(
             {
@@ -184,10 +159,6 @@ export async function POST(request: NextRequest) {
             "PDF service unavailable. Please try again later.",
           defaultMessage: "Failed to analyze resume",
         });
-      } finally {
-        if (tempFilePath) {
-          await unlink(tempFilePath).catch(() => {});
-        }
       }
     },
   );
