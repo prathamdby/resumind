@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { X } from "lucide-react";
 import ScoreCircle from "./ScoreCircle";
 import DeleteConfirmModal from "./DeleteConfirmModal";
-import { useMemo, useState, useRef } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import React from "react";
 import type { Resume } from "@/types";
 
@@ -18,24 +18,65 @@ const ResumeCard = React.memo(
       companyName,
       jobTitle,
       feedback,
-      previewImage: previewImageProp,
     },
   }: {
     resume: Resume;
   }) => {
     const cardRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [fetchError, setFetchError] = useState(false);
     const [imageLoadError, setImageLoadError] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
+    useEffect(() => {
+      let cancelled = false;
+
+      async function fetchPreview() {
+        try {
+          const response = await fetch(`/api/resumes/${id}/preview`);
+          if (!response.ok) {
+            if (!cancelled) {
+              setFetchError(true);
+              setIsLoading(false);
+            }
+            return;
+          }
+
+          const result = await response.json();
+          if (result.success && result.previewImage && !cancelled) {
+            setPreviewImage(result.previewImage);
+          } else if (!cancelled) {
+            setFetchError(true);
+          }
+        } catch {
+          if (!cancelled) {
+            setFetchError(true);
+          }
+        } finally {
+          if (!cancelled) {
+            setIsLoading(false);
+          }
+        }
+      }
+
+      fetchPreview();
+
+      return () => {
+        cancelled = true;
+      };
+    }, [id]);
+
     const hasFeedback = typeof feedback === "object" && feedback !== null;
-    const hasNoPreview = !previewImageProp;
-    const placeholderText = hasNoPreview
-      ? "No preview available"
-      : imageLoadError
-        ? "Preview failed to load"
-        : "Preview unavailable";
+    const placeholderText = isLoading
+      ? "Loading preview..."
+      : fetchError || !previewImage
+        ? "Preview unavailable"
+        : imageLoadError
+          ? "Preview failed to load"
+          : "Preview unavailable";
 
     const overallScore = hasFeedback ? feedback.overallScore : undefined;
 
@@ -101,9 +142,9 @@ const ResumeCard = React.memo(
           </div>
 
           <div className="resume-card__preview relative h-[320px] overflow-hidden bg-slate-100">
-            {previewImageProp && !imageLoadError ? (
+            {previewImage && !imageLoadError ? (
               <Image
-                src={previewImageProp}
+                src={previewImage}
                 alt={`Resume preview for ${companyName || jobTitle || "resume"}`}
                 fill
                 className="object-contain"
@@ -197,8 +238,7 @@ const ResumeCard = React.memo(
       prevProps.resume.companyName === nextProps.resume.companyName &&
       prevProps.resume.jobTitle === nextProps.resume.jobTitle &&
       prevProps.resume.feedback?.overallScore ===
-        nextProps.resume.feedback?.overallScore &&
-      prevProps.resume.previewImage === nextProps.resume.previewImage
+        nextProps.resume.feedback?.overallScore
     );
   },
 );
