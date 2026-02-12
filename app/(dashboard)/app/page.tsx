@@ -170,8 +170,13 @@ export default async function DashboardPage() {
                     id: resume.id,
                     companyName: resume.companyName || undefined,
                     jobTitle: resume.jobTitle,
-                    jobDescription: "",
-                    feedback,
+                    overallScore: feedback.overallScore,
+                    categoryScores: {
+                      toneAndStyle: feedback.toneAndStyle.score,
+                      content: feedback.content.score,
+                      structure: feedback.structure.score,
+                      skills: feedback.skills.score,
+                    },
                   }}
                 />
               );

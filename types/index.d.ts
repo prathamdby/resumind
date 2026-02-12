@@ -79,6 +79,19 @@ export interface Resume {
   previewImage?: string;
 }
 
+export interface ResumeCardData {
+  id: string;
+  companyName?: string;
+  jobTitle?: string;
+  overallScore: number;
+  categoryScores: {
+    toneAndStyle: number;
+    content: number;
+    structure: number;
+    skills: number;
+  };
+}
+
 export interface CoverLetterContent {
   header: {
     fullName: string;

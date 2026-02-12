@@ -9,7 +9,7 @@ import ScoreCircle from "./ScoreCircle";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 import { useMemo, useState, useRef, useEffect } from "react";
 import React from "react";
-import type { Resume } from "@/types";
+import type { ResumeCardData } from "@/types";
 
 const ResumeCard = React.memo(
   ({
@@ -17,10 +17,11 @@ const ResumeCard = React.memo(
       id,
       companyName,
       jobTitle,
-      feedback,
+      overallScore,
+      categoryScores,
     },
   }: {
-    resume: Resume;
+    resume: ResumeCardData;
   }) => {
     const cardRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
@@ -69,7 +70,6 @@ const ResumeCard = React.memo(
       };
     }, [id]);
 
-    const hasFeedback = typeof feedback === "object" && feedback !== null;
     const placeholderText = isLoading
       ? "Loading preview..."
       : fetchError || !previewImage
@@ -78,25 +78,20 @@ const ResumeCard = React.memo(
           ? "Preview failed to load"
           : "Preview unavailable";
 
-    const overallScore = hasFeedback ? feedback.overallScore : undefined;
-
     const highlightCategories = useMemo(() => {
-      if (!hasFeedback) return [] as { label: string; score: number }[];
-
       const pairs: { label: string; score: number }[] = [
-        { label: "Tone & Style", score: feedback.toneAndStyle.score },
-        { label: "Content", score: feedback.content.score },
-        { label: "Structure", score: feedback.structure.score },
-        { label: "Skills", score: feedback.skills.score },
+        { label: "Tone & Style", score: categoryScores.toneAndStyle },
+        { label: "Content", score: categoryScores.content },
+        { label: "Structure", score: categoryScores.structure },
+        { label: "Skills", score: categoryScores.skills },
       ];
 
       return pairs.sort((a, b) => b.score - a.score).slice(0, 2);
     }, [
-      hasFeedback,
-      feedback?.toneAndStyle?.score,
-      feedback?.content?.score,
-      feedback?.structure?.score,
-      feedback?.skills?.score,
+      categoryScores.toneAndStyle,
+      categoryScores.content,
+      categoryScores.structure,
+      categoryScores.skills,
     ]);
 
     return (
@@ -160,26 +155,24 @@ const ResumeCard = React.memo(
             )}
           </div>
 
-          {hasFeedback && (
-            <div className="flex flex-col gap-4 text-sm text-slate-600">
-              <p className="font-semibold text-slate-700">Top strengths</p>
-              <ul className="grid gap-2 sm:grid-cols-2">
-                {highlightCategories.map((category) => (
-                  <li
-                    key={`${id}-${category.label}`}
-                    className="flex items-center justify-between gap-3 rounded-2xl bg-indigo-50/40 px-3 py-2 text-slate-600"
-                  >
-                    <span className="text-sm font-medium text-slate-700">
-                      {category.label}
-                    </span>
-                    <span className="text-sm font-semibold text-slate-900">
-                      {category.score}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <div className="flex flex-col gap-4 text-sm text-slate-600">
+            <p className="font-semibold text-slate-700">Top strengths</p>
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {highlightCategories.map((category) => (
+                <li
+                  key={`${id}-${category.label}`}
+                  className="flex items-center justify-between gap-3 rounded-2xl bg-indigo-50/40 px-3 py-2 text-slate-600"
+                >
+                  <span className="text-sm font-medium text-slate-700">
+                    {category.label}
+                  </span>
+                  <span className="text-sm font-semibold text-slate-900">
+                    {category.score}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
 
           <span className="mt-auto flex items-center justify-between text-sm font-semibold text-indigo-600">
             View detailed analysis
@@ -237,8 +230,7 @@ const ResumeCard = React.memo(
       prevProps.resume.id === nextProps.resume.id &&
       prevProps.resume.companyName === nextProps.resume.companyName &&
       prevProps.resume.jobTitle === nextProps.resume.jobTitle &&
-      prevProps.resume.feedback?.overallScore ===
-        nextProps.resume.feedback?.overallScore
+      prevProps.resume.overallScore === nextProps.resume.overallScore
     );
   },
 );
