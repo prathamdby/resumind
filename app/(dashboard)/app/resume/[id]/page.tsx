@@ -18,17 +18,25 @@ import { getServerSession } from "@/lib/auth-server";
 import { prisma } from "@/lib/prisma";
 import { FeedbackSchema } from "@/lib/schemas";
 
+const ICON_MESSAGE_SQUARE = { Icon: MessageSquare } as const;
+const ICON_PENCIL = { Icon: Pencil } as const;
+const ICON_CHECK = { Icon: CheckCheck } as const;
+const ICON_LIGHTBULB = { Icon: Lightbulb } as const;
+const DEFAULT_OPEN_SECTIONS = ["cold-outreach", "line-improvements"];
+const BADGE_SETS = { label: "Sets", value: 4 } as const;
+
 export default async function ResumePage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const session = await getServerSession();
+  const [session, { id }] = await Promise.all([
+    getServerSession(),
+    params,
+  ]);
   if (!session) {
     redirect("/auth");
   }
-
-  const { id } = await params;
 
   const resume = await prisma.resume.findUnique({
     where: { id },
@@ -102,7 +110,7 @@ export default async function ResumePage({
 
             <Accordion
               className="space-y-5"
-              defaultOpen={["cold-outreach", "line-improvements"]}
+              defaultOpen={DEFAULT_OPEN_SECTIONS}
               allowMultiple
               persistKey={`resume-${resume.id}`}
               showControls
@@ -110,7 +118,7 @@ export default async function ResumePage({
               {feedback.coldOutreachMessage && (
                 <AnalysisSection
                   id="cold-outreach"
-                  icon={{ Icon: MessageSquare }}
+                  icon={ICON_MESSAGE_SQUARE}
                   title="Cold Outreach Message"
                   eyebrow="LinkedIn DM template"
                   description="A personalized message based on your resume. Customize before sending."
@@ -124,7 +132,7 @@ export default async function ResumePage({
 
               <AnalysisSection
                 id="line-improvements"
-                icon={{ Icon: Pencil }}
+                icon={ICON_PENCIL}
                 title="Line-by-Line Improvements"
                 eyebrow="Specific rewrites"
                 description="Ready-to-use replacements for your resume. Copy and apply these suggestions to boost your score."
@@ -140,7 +148,7 @@ export default async function ResumePage({
 
               <AnalysisSection
                 id="ats"
-                icon={{ Icon: CheckCheck }}
+                icon={ICON_CHECK}
                 title="ATS Readiness"
                 eyebrow="Parser score"
                 description="Stay above 80 to stay visible in recruiter dashboards."
@@ -157,14 +165,11 @@ export default async function ResumePage({
 
               <AnalysisSection
                 id="detailed-coaching"
-                icon={{ Icon: Lightbulb }}
+                icon={ICON_LIGHTBULB}
                 title="Detailed Coaching"
                 eyebrow="Category breakdown"
                 description="Expand each section to review what is working well and the edits that will unlock the next score jump."
-                badge={{
-                  label: "Sets",
-                  value: 4,
-                }}
+                badge={BADGE_SETS}
               >
                 <Details feedback={feedback} />
               </AnalysisSection>
