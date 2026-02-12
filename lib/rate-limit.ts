@@ -116,75 +116,48 @@ export async function checkRateLimit(
 
     type UpdatedRateLimit = { count: number; resetAt: Date };
     const updatedRecords = await prisma.$queryRaw<UpdatedRateLimit[]>`
-      UPDATE "RateLimit"
-      SET count = count + 1,
-          "lastRequest" = ${timestamp}
-      WHERE key = ${key}
-        AND count < ${config.max}
-        AND "resetAt" > ${now}
+      INSERT INTO "RateLimit" (key, count, "resetAt", "lastRequest")
+      VALUES (${key}, 1, ${resetAt}, ${timestamp})
+      ON CONFLICT (key) DO UPDATE SET
+        count = CASE
+          WHEN "RateLimit"."resetAt" < ${now} THEN 1
+          WHEN "RateLimit".count < ${config.max} THEN "RateLimit".count + 1
+          ELSE "RateLimit".count
+        END,
+        "resetAt" = CASE
+          WHEN "RateLimit"."resetAt" < ${now} THEN ${resetAt}
+          ELSE "RateLimit"."resetAt"
+        END,
+        "lastRequest" = ${timestamp}
       RETURNING count, "resetAt"
     `;
 
-    if (updatedRecords.length > 0) {
-      const updated = updatedRecords[0];
-      rateLimitCache.set(key, {
-        count: updated.count,
-        resetAt: updated.resetAt.getTime(),
-        lastUpdated: Date.now(),
-      });
+    const updated = updatedRecords[0];
+    const isNewWindow = updated.count === 1 && updatedRecords.length > 0;
 
+    rateLimitCache.set(key, {
+      count: updated.count,
+      resetAt: updated.resetAt.getTime(),
+      lastUpdated: Date.now(),
+    });
+
+    if (updated.count < config.max || isNewWindow) {
       const remaining = config.max - updated.count;
       console.log(
-        `[Rate Limit] ${routePath} - ${updated.count}/${config.max} requests used. ${remaining} remaining.`,
-      );
-
-      return { allowed: true };
-    }
-
-    const existing = await prisma.rateLimit.findUnique({ where: { key } });
-
-    if (!existing || existing.resetAt < now) {
-      const newRecord = await prisma.rateLimit.upsert({
-        where: { key },
-        update: {
-          count: 1,
-          resetAt,
-          lastRequest: timestamp,
-        },
-        create: {
-          key,
-          count: 1,
-          resetAt,
-          lastRequest: timestamp,
-        },
-      });
-
-      rateLimitCache.set(key, {
-        count: 1,
-        resetAt: newRecord.resetAt.getTime(),
-        lastUpdated: Date.now(),
-      });
-
-      const remaining = config.max - 1;
-      console.log(
-        `[Rate Limit] ${routePath} - Window reset. 1/${config.max} requests used. ${remaining} remaining.`,
+        `[Rate Limit] ${routePath} - ${
+          isNewWindow ? "Window reset. " : ""
+        }${updated.count}/${config.max} requests used. ${remaining} remaining.`,
       );
 
       return { allowed: true };
     }
 
     const retryAfter = Math.ceil(
-      (existing.resetAt.getTime() - now.getTime()) / 1000,
+      (updated.resetAt.getTime() - now.getTime()) / 1000,
     );
 
-    rateLimitCache.set(key, {
-      count: existing.count,
-      resetAt: existing.resetAt.getTime(),
-      lastUpdated: Date.now(),
-    });
-
     console.log(
-      `[Rate Limit] ${routePath} - Rate limit exceeded. ${existing.count}/${config.max} requests used. Retry after ${retryAfter}s`,
+      `[Rate Limit] ${routePath} - Rate limit exceeded. ${updated.count}/${config.max} requests used. Retry after ${retryAfter}s`,
     );
 
     return { allowed: false, retryAfter };
