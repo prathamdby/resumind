@@ -21,7 +21,7 @@ export const signInWithGoogle = async () => {
   try {
     await authClient.signIn.social({
       provider: "google",
-      callbackURL: "/",
+      callbackURL: "/app",
     });
   } catch (error) {
     if (error instanceof Error) {
