@@ -48,6 +48,7 @@ export default async function ResumePage({
       jobDescription: true,
       feedback: true,
       createdAt: true,
+      previewImage: true,
     },
   });
 
@@ -94,7 +95,7 @@ export default async function ResumePage({
               </p>
             </div>
             <div className="preview-rail__frame gradient-border overflow-hidden">
-              <PreviewImage resumeId={resume.id} />
+              <PreviewImage previewImage={resume.previewImage ?? null} />
             </div>
             <p className="text-xs text-slate-500">
               Preview generated from uploaded PDF

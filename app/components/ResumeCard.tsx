@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { X } from "lucide-react";
 import ScoreCircle from "./ScoreCircle";
 import DeleteConfirmModal from "./DeleteConfirmModal";
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState, useRef } from "react";
 import React from "react";
 import type { ResumeCardData } from "@/types";
 
@@ -18,6 +18,7 @@ const ResumeCard = React.memo(
       companyName,
       jobTitle,
       overallScore,
+      previewImage: previewImageProp,
       categoryScores,
     },
   }: {
@@ -25,54 +26,14 @@ const ResumeCard = React.memo(
   }) => {
     const cardRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
-    const [previewImage, setPreviewImage] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [fetchError, setFetchError] = useState(false);
     const [imageLoadError, setImageLoadError] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    useEffect(() => {
-      let cancelled = false;
+    const previewImage = previewImageProp ?? null;
 
-      async function fetchPreview() {
-        try {
-          const response = await fetch(`/api/resumes/${id}/preview`);
-          if (!response.ok) {
-            if (!cancelled) {
-              setFetchError(true);
-              setIsLoading(false);
-            }
-            return;
-          }
-
-          const result = await response.json();
-          if (result.success && result.previewImage && !cancelled) {
-            setPreviewImage(result.previewImage);
-          } else if (!cancelled) {
-            setFetchError(true);
-          }
-        } catch {
-          if (!cancelled) {
-            setFetchError(true);
-          }
-        } finally {
-          if (!cancelled) {
-            setIsLoading(false);
-          }
-        }
-      }
-
-      fetchPreview();
-
-      return () => {
-        cancelled = true;
-      };
-    }, [id]);
-
-    const placeholderText = isLoading
-      ? "Loading preview..."
-      : fetchError || !previewImage
+    const placeholderText =
+      !previewImage
         ? "Preview unavailable"
         : imageLoadError
           ? "Preview failed to load"
@@ -230,7 +191,8 @@ const ResumeCard = React.memo(
       prevProps.resume.id === nextProps.resume.id &&
       prevProps.resume.companyName === nextProps.resume.companyName &&
       prevProps.resume.jobTitle === nextProps.resume.jobTitle &&
-      prevProps.resume.overallScore === nextProps.resume.overallScore
+      prevProps.resume.overallScore === nextProps.resume.overallScore &&
+      prevProps.resume.previewImage === nextProps.resume.previewImage
     );
   },
 );

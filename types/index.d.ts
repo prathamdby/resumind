@@ -84,6 +84,7 @@ export interface ResumeCardData {
   companyName?: string;
   jobTitle?: string;
   overallScore: number;
+  previewImage?: string | null;
   categoryScores: {
     toneAndStyle: number;
     content: number;
