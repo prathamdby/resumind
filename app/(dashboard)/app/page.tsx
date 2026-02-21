@@ -21,6 +21,7 @@ export default async function DashboardPage() {
       companyName: true,
       createdAt: true,
       feedback: true,
+      previewImage: true,
     },
     orderBy: { createdAt: "desc" },
     take: 50,
@@ -171,6 +172,7 @@ export default async function DashboardPage() {
                     companyName: resume.companyName || undefined,
                     jobTitle: resume.jobTitle,
                     overallScore: feedback.overallScore,
+                    previewImage: resume.previewImage,
                     categoryScores: {
                       toneAndStyle: feedback.toneAndStyle.score,
                       content: feedback.content.score,

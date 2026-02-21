@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Copy, Check, RefreshCcw } from "lucide-react";
 import { toast } from "sonner";
 import RegenerateColdDMModal from "@/app/components/RegenerateColdDMModal";
@@ -12,14 +12,16 @@ interface ColdOutreachProps {
 
 const ColdOutreach = ({ message, resumeId }: ColdOutreachProps) => {
   const [currentMessage, setCurrentMessage] = useState(message);
+  const [prevMessage, setPrevMessage] = useState(message);
   const [copied, setCopied] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
 
-  useEffect(() => {
+  if (message !== prevMessage) {
+    setPrevMessage(message);
     setCurrentMessage(message);
     setCopied(false);
-  }, [message]);
+  }
 
   const handleCopy = async () => {
     try {
