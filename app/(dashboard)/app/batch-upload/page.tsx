@@ -6,7 +6,7 @@ export default function BatchUploadPage() {
       <header className="flex max-w-3xl flex-col gap-6">
         <span className="section-eyebrow">Batch analyze</span>
         <h1 className="headline">
-          One resume, multiple jobs — analyzed in parallel
+          One resume, multiple jobs. Analyzed in parallel.
         </h1>
         <p className="subheadline">
           Upload your resume once and compare it against up to 10 different job
