@@ -32,9 +32,9 @@ function validateUrl(url: string): { valid: boolean; error?: string } {
 }
 
 async function fetchPageContent(url: string): Promise<string> {
-  const jinaUrl = `https://r.jina.ai/${url}`;
+  const defuddleUrl = `https://defuddle.md/${url}`;
 
-  const response = await fetch(jinaUrl, {
+  const response = await fetch(defuddleUrl, {
     headers: {
       "User-Agent": "ResumindJobFetcher/1.0",
       Accept: "text/plain",

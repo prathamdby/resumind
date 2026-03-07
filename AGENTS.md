@@ -88,7 +88,7 @@ When adding components, reference existing patterns (`ResumeCard`, `Navbar`, `Up
 ### Model 2: "Resume lifecycle pipeline"
 
 1. User fills form in `UploadForm` (client component): job title, description, company name, PDF file.
-2. Optional: User imports job from URL → `POST /api/import-job` → Jina.ai fetches content → Cerebras AI extracts structured data → returns to form.
+2. Optional: User imports job from URL → `POST /api/import-job` → Defuddle fetches content → Cerebras AI extracts structured data → returns to form.
 3. User submits → `POST /api/analyze`:
    - File validated (PDF, <20MB)
    - PDF written to temp file

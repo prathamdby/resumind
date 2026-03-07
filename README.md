@@ -26,7 +26,7 @@ An intelligent resume analysis platform that provides personalized, ATS-aligned 
 - **Database**: Neon PostgreSQL with Prisma ORM
 - **AI**: Cerebras AI for resume analysis and job data extraction
 - **PDF Processing**: External PDF service for markdown conversion and preview generation
-- **Job Import**: Jina.ai for web content extraction
+- **Job Import**: Defuddle for web content extraction
 - **Styling**: Tailwind CSS v4 with custom animations
 - **File Upload**: React Dropzone
 - **UI Components**: Lucide React icons, Sonner toasts
