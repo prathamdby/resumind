@@ -32,7 +32,7 @@ function validateUrl(url: string): { valid: boolean; error?: string } {
 }
 
 async function fetchPageContent(url: string): Promise<string> {
-  const defuddleUrl = `https://r.jina.ai/http://defuddle.md/${url}`;
+  const defuddleUrl = `https://defuddle.md/${url}`;
 
   const response = await fetch(defuddleUrl, {
     headers: {
