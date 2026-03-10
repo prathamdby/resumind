@@ -115,3 +115,13 @@ export const OutreachContextSchema = z.object({
   additionalContext: z.string().max(1000).optional(),
   resumeMarkdown: z.string().optional(),
 });
+
+export const BatchJobEntrySchema = z.object({
+  jobTitle: z.string().min(1, "Job title required").max(300),
+  jobDescription: z.string().min(50, "Description too short").max(50000),
+  companyName: z.string().max(200).optional(),
+});
+
+export const BatchAnalyzeInputSchema = z.object({
+  jobs: z.array(BatchJobEntrySchema).min(2, "At least 2 jobs required").max(10, "Maximum 10 jobs per batch"),
+});

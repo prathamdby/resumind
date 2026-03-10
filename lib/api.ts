@@ -3,6 +3,8 @@ import type {
   CoverLetterContent,
   OutreachChannel,
   OutreachTone,
+  BatchJobEntry,
+  BatchStreamEvent,
 } from "@/types";
 
 export async function analyzeResume(
@@ -208,4 +210,55 @@ export async function regenerateOutreach(
   }
 
   return { content: result.content, subject: result.subject };
+}
+
+export async function batchAnalyze(
+  file: File,
+  jobs: BatchJobEntry[],
+  onEvent: (event: BatchStreamEvent) => void,
+): Promise<void> {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("jobs", JSON.stringify(jobs));
+
+  const response = await fetch("/api/batch-analyze", {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      const result = await response.json();
+      throw new Error(result.error || "Batch analysis failed");
+    }
+    throw new Error(`Batch analysis failed (${response.status})`);
+  }
+
+  const reader = response.body?.getReader();
+  if (!reader) {
+    throw new Error("No response stream");
+  }
+
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() || "";
+
+    for (const line of lines) {
+      if (line.trim()) {
+        onEvent(JSON.parse(line) as BatchStreamEvent);
+      }
+    }
+  }
+
+  if (buffer.trim()) {
+    onEvent(JSON.parse(buffer) as BatchStreamEvent);
+  }
 }
