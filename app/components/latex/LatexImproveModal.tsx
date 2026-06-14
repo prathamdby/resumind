@@ -79,7 +79,6 @@ export default function LatexImproveModal({
 
     setIsApplying(true);
     setApplyError(null);
-    setOriginalCode(latexCode);
 
     try {
       const response = await fetch("/api/latex/improve", {
@@ -102,6 +101,7 @@ export default function LatexImproveModal({
       }
 
       const result = await response.json();
+      setOriginalCode(latexCode);
       setLatexCode(result.improvedLatex);
       setDebouncedCode(result.improvedLatex);
       toast.success(`Applied ${result.changesApplied} improvements across ${result.sectionsModified.length} sections`);
