@@ -56,28 +56,37 @@ function parseLatexToSections(code: string): { type: string; content: string }[]
   return sections;
 }
 
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function renderLatexLine(line: string): string {
   let result = line;
 
-  result = result.replace(/\\textbf\{([^}]*)\}/g, "<strong>$1</strong>");
-  result = result.replace(/\\textit\{([^}]*)\}/g, "<em>$1</em>");
-  result = result.replace(/\\emph\{([^}]*)\}/g, "<em>$1</em>");
-  result = result.replace(/\\underline\{([^}]*)\}/g, "<u>$1</u>");
-  result = result.replace(/\\href\{([^}]*)\}\{([^}]*)\}/g, '<span class="text-indigo-600 underline">$2</span>');
-  result = result.replace(/\\url\{([^}]*)\}/g, '<span class="text-indigo-600 underline">$1</span>');
+  result = result.replace(/\\textbf\{([^}]*)\}/g, (_, text) => `<strong>${escapeHtml(text)}</strong>`);
+  result = result.replace(/\\textit\{([^}]*)\}/g, (_, text) => `<em>${escapeHtml(text)}</em>`);
+  result = result.replace(/\\emph\{([^}]*)\}/g, (_, text) => `<em>${escapeHtml(text)}</em>`);
+  result = result.replace(/\\underline\{([^}]*)\}/g, (_, text) => `<u>${escapeHtml(text)}</u>`);
+  result = result.replace(/\\href\{([^}]*)\}\{([^}]*)\}/g, (_, _url, text) => `<span class="text-indigo-600 underline">${escapeHtml(text)}</span>`);
+  result = result.replace(/\\url\{([^}]*)\}/g, (_, text) => `<span class="text-indigo-600 underline">${escapeHtml(text)}</span>`);
 
   result = result.replace(/\\(?:cventry|cvevent)\{([^}]*)\}\{([^}]*)\}\{([^}]*)\}\{([^}]*)\}/g,
     (_m, a, b, c, d) =>
-      `<div class="mb-1"><strong>${a}</strong> <span class="text-slate-500">${b}</span></div><div class="text-sm text-slate-600">${c} ${d ? "| " + d : ""}</div>`);
+      `<div class="mb-1"><strong>${escapeHtml(a)}</strong> <span class="text-slate-500">${escapeHtml(b)}</span></div><div class="text-sm text-slate-600">${escapeHtml(c)} ${d ? "| " + escapeHtml(d) : ""}</div>`);
 
   result = result.replace(/\\cvitem\{([^}]*)\}\{([^}]*)\}/g,
-    '<div class="flex gap-3"><span class="font-medium text-slate-700 min-w-[80px]">$1</span><span>$2</span></div>');
+    (_, label, value) => `<div class="flex gap-3"><span class="font-medium text-slate-700 min-w-[80px]">${escapeHtml(label)}</span><span>${escapeHtml(value)}</span></div>`);
 
   result = result.replace(/\\cvtag\{([^}]*)\}/g,
-    '<span class="inline-block rounded-full border border-indigo-200 bg-indigo-50/60 px-2.5 py-0.5 text-xs font-medium text-indigo-700 mr-1.5 mb-1">$1</span>');
+    (_, text) => `<span class="inline-block rounded-full border border-indigo-200 bg-indigo-50/60 px-2.5 py-0.5 text-xs font-medium text-indigo-700 mr-1.5 mb-1">${escapeHtml(text)}</span>`);
 
   result = result.replace(/\\cvskill\{([^}]*)\}\{([^}]*)\}/g,
-    '<div class="flex justify-between"><span>$1</span><span class="text-slate-500">$2</span></div>');
+    (_, skill, level) => `<div class="flex justify-between"><span>${escapeHtml(skill)}</span><span class="text-slate-500">${escapeHtml(level)}</span></div>`);
 
   result = result.replace(/\\item\s*/g, "");
   result = result.replace(/\\\\$/g, "");
@@ -93,7 +102,7 @@ function renderLatexLine(line: string): string {
 
   result = result.replace(/\\begin\{[^}]+\}/g, "");
   result = result.replace(/\\end\{[^}]+\}/g, "");
-  result = result.replace(/\\[a-zA-Z]+\{([^}]*)\}/g, "$1");
+  result = result.replace(/\\[a-zA-Z]+\{([^}]*)\}/g, (_, text) => escapeHtml(text));
   result = result.replace(/\\[a-zA-Z]+\*?\s*/g, "");
 
   return result.trim();
