@@ -81,31 +81,37 @@ export default function LatexImproveModal({
     setApplyError(null);
     setOriginalCode(latexCode);
 
-    const response = await fetch("/api/latex/improve", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        latexCode,
-        lineImprovements,
-        jobTitle,
-        companyName,
-      }),
-    });
+    try {
+      const response = await fetch("/api/latex/improve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          latexCode,
+          lineImprovements,
+          jobTitle,
+          companyName,
+        }),
+      });
 
-    if (!response.ok) {
-      const data = await response.json().catch(() => null);
-      const message = data?.error || "Failed to apply suggestions";
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        const message = data?.error || "Failed to apply suggestions";
+        setApplyError(message);
+        toast.error(message);
+        return;
+      }
+
+      const result = await response.json();
+      setLatexCode(result.improvedLatex);
+      setDebouncedCode(result.improvedLatex);
+      toast.success(`Applied ${result.changesApplied} improvements across ${result.sectionsModified.length} sections`);
+    } catch {
+      const message = "Failed to apply suggestions";
       setApplyError(message);
       toast.error(message);
+    } finally {
       setIsApplying(false);
-      return;
     }
-
-    const result = await response.json();
-    setLatexCode(result.improvedLatex);
-    setDebouncedCode(result.improvedLatex);
-    toast.success(`Applied ${result.changesApplied} improvements across ${result.sectionsModified.length} sections`);
-    setIsApplying(false);
   }, [latexCode, isApplying, lineImprovements, jobTitle, companyName]);
 
   const handleCopy = useCallback(() => {
