@@ -19,46 +19,52 @@ export async function POST(request: NextRequest) {
     request,
     "/api/latex/improve",
     async () => {
-      const body = await request.json();
-      const parseResult = LatexImproveRequestSchema.safeParse(body);
+      try {
+        const body = await request.json();
+        const parseResult = LatexImproveRequestSchema.safeParse(body);
 
-      if (!parseResult.success) {
-        return NextResponse.json(
-          { success: false, error: "Invalid request", details: parseResult.error.flatten() },
-          { status: 400 },
-        );
+        if (!parseResult.success) {
+          return NextResponse.json(
+            { success: false, error: "Invalid request", details: parseResult.error.flatten() },
+            { status: 400 },
+          );
+        }
+
+        const { latexCode, lineImprovements, jobTitle, companyName } = parseResult.data;
+
+        const userPrompt = prepareLatexImprovePrompt({
+          latexCode,
+          lineImprovements,
+          jobTitle,
+          companyName: companyName || undefined,
+        });
+
+        const aiResponse = await makeAIRequest<LatexImproveAIResponse>({
+          messages: [
+            { role: "system", content: LATEX_IMPROVE_SYSTEM_PROMPT },
+            { role: "user", content: userPrompt },
+          ],
+          reasoningLevel: "low",
+          timeout: 30000,
+        });
+
+        const validation = LatexImproveResponseSchema.safeParse(aiResponse);
+        if (!validation.success) {
+          return NextResponse.json(
+            { success: false, error: "AI returned malformed response" },
+            { status: 500 },
+          );
+        }
+
+        return NextResponse.json({
+          success: true,
+          ...validation.data,
+        });
+      } catch (error) {
+        return handleAPIError(error, {
+          defaultMessage: "Failed to improve LaTeX",
+        });
       }
-
-      const { latexCode, lineImprovements, jobTitle, companyName } = parseResult.data;
-
-      const userPrompt = prepareLatexImprovePrompt({
-        latexCode,
-        lineImprovements,
-        jobTitle,
-        companyName: companyName || undefined,
-      });
-
-      const aiResponse = await makeAIRequest<LatexImproveAIResponse>({
-        messages: [
-          { role: "system", content: LATEX_IMPROVE_SYSTEM_PROMPT },
-          { role: "user", content: userPrompt },
-        ],
-        reasoningLevel: "low",
-        timeout: 30000,
-      });
-
-      const validation = LatexImproveResponseSchema.safeParse(aiResponse);
-      if (!validation.success) {
-        return NextResponse.json(
-          { success: false, error: "AI returned malformed response" },
-          { status: 500 },
-        );
-      }
-
-      return NextResponse.json({
-        success: true,
-        ...validation.data,
-      });
     },
   );
 }
