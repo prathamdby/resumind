@@ -9,6 +9,7 @@ export const RATE_LIMIT_CONFIG = {
   "/api/cover-letter/regenerate": { window: 60, max: 5 },
   "/api/outreach/generate": { window: 60, max: 5 },
   "/api/outreach/regenerate": { window: 60, max: 5 },
+  "/api/latex/improve": { window: 60, max: 5 },
   default: { window: 60, max: 100 },
 } as const;
 

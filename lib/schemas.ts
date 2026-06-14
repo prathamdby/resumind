@@ -115,3 +115,16 @@ export const OutreachContextSchema = z.object({
   additionalContext: z.string().max(1000).optional(),
   resumeMarkdown: z.string().optional(),
 });
+
+export const LatexImproveRequestSchema = z.object({
+  latexCode: z.string().min(1, "LaTeX code required").max(100000),
+  lineImprovements: z.array(LineImprovementSchema).min(1),
+  jobTitle: z.string().min(1),
+  companyName: z.string().optional(),
+});
+
+export const LatexImproveResponseSchema = z.object({
+  improvedLatex: z.string().min(1),
+  changesApplied: z.number().min(0),
+  sectionsModified: z.array(z.string()),
+});
