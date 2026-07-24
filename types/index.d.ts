@@ -197,3 +197,33 @@ export interface Outreach {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface BatchAnalysis {
+  id: string;
+  totalJobs: number;
+  completedJobs: number;
+  failedJobs: number;
+  status: "processing" | "completed" | "partial" | "failed";
+  createdAt: string;
+}
+
+export interface BatchJobEntry {
+  jobTitle: string;
+  jobDescription: string;
+  companyName?: string;
+}
+
+export interface BatchStreamEvent {
+  type: "init" | "progress" | "complete";
+  batchId?: string;
+  totalJobs?: number;
+  jobIndex?: number;
+  status?: "success" | "error";
+  resumeId?: string;
+  jobTitle?: string;
+  companyName?: string;
+  overallScore?: number;
+  error?: string;
+  completed?: number;
+  failed?: number;
+}

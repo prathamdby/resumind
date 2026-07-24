@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { cn } from "@/app/lib/utils";
-import { LogOut, FileText, Upload, Mail, Send } from "lucide-react";
+import { LogOut, FileText, Upload, Mail, Send, Layers } from "lucide-react";
 
 interface AppSidebarProps {
   user: {
@@ -29,6 +29,7 @@ const navItems = [
   { href: "/app/cover-letter", label: "Cover Letters", icon: Mail },
   { href: "/app/outreach", label: "Outreach", icon: Send },
   { href: "/app/upload", label: "Analyze Resume", icon: Upload },
+  { href: "/app/batch-upload", label: "Batch Analyze", icon: Layers },
 ];
 
 export default function AppSidebar({ user }: AppSidebarProps) {

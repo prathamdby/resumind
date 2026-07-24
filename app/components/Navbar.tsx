@@ -9,6 +9,7 @@ const Navbar = () => {
   const pathname = usePathname();
   const isHome = pathname === "/app";
   const isCoverLetter = pathname.startsWith("/app/cover-letter");
+  const isBatch = pathname.startsWith("/app/batch");
 
   return (
     <header className="px-4 pt-4">
@@ -51,6 +52,17 @@ const Navbar = () => {
             )}
           >
             Cover Letters
+          </Link>
+          <Link
+            href="/app/batch-upload"
+            className={cn(
+              "rounded-full px-4 py-2 text-sm font-medium",
+              isBatch
+                ? "bg-slate-900 text-white shadow-sm"
+                : "text-slate-600 hover:text-slate-900",
+            )}
+          >
+            Batch
           </Link>
           <Link href="/app/upload" className="primary-button px-5 py-2.5 text-sm">
             Analyze Resume
